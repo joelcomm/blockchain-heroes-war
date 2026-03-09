@@ -236,7 +236,8 @@ const MOCK_CARDS = (()=>{
 })();
 
 /* ═══════════ HELPERS ═══════════ */
-function getHeroKey(c){ return (c.name||"").trim().toLowerCase(); }
+function normalizeHeroName(n){ return (n||"").trim().toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," "); }
+function getHeroKey(c){ return normalizeHeroName(c.name); }
 function getHeroPower(c){ if(!c)return null; return HERO_POWERS[String(c.templateId)] || HERO_NAME_POWERS[String(c.name||"").trim().toLowerCase()] || null; }
 function getCardStrength(c){ return RARITY_ORDER[c.rarity]+(getHeroPower(c)?.bonus||0); }
 function titleCase(v){ return v.charAt(0).toUpperCase()+v.slice(1); }
@@ -648,7 +649,7 @@ function App(){
                 {colArrays.map((col,ci)=>
                   <div key={ci} style={{display:"flex",flexDirection:"column",gap:2}}>
                     {col.map(name=>{
-                      const inDeck=deckHeroes.has(name.trim().toLowerCase());
+                      const inDeck=deckHeroes.has(normalizeHeroName(name));
                       return(
                         <div key={name} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",color:inDeck?"#4ade80":"#ef4444"}}>
                           <span style={{fontSize:13,lineHeight:1}}>{inDeck?"✓":"✗"}</span>
