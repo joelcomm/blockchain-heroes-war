@@ -641,17 +641,22 @@ function App(){
           <div className="ui-card-title">Hero Checklist ({deck.length}/{DECK_SIZE})</div>
           {(()=>{
             const deckHeroes=new Set(deck.map(c=>getHeroKey(c)));
-            const cols=5, rows=10;
+            // Build merged hero list: use actual card names where available, fill gaps from master list
+            const seen=new Map(); // normalizedKey -> display name
+            ownedCards.forEach(c=>{ const k=getHeroKey(c); if(!seen.has(k)) seen.set(k, c.name); });
+            ALL_HEROES.forEach(name=>{ const k=normalizeHeroName(name); if(!seen.has(k)) seen.set(k, name); });
+            const heroList=[...seen.entries()].sort((a,b)=>a[1].localeCompare(b[1]));
+            const cols=5, rows=Math.ceil(heroList.length/5);
             const colArrays=[];
-            for(let col=0;col<cols;col++) colArrays.push(ALL_HEROES.slice(col*rows,(col+1)*rows));
+            for(let col=0;col<cols;col++) colArrays.push(heroList.slice(col*rows,(col+1)*rows));
             return(
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,fontSize:12}}>
                 {colArrays.map((col,ci)=>
                   <div key={ci} style={{display:"flex",flexDirection:"column",gap:2}}>
-                    {col.map(name=>{
-                      const inDeck=deckHeroes.has(normalizeHeroName(name));
+                    {col.map(([key,name])=>{
+                      const inDeck=deckHeroes.has(key);
                       return(
-                        <div key={name} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",color:inDeck?"#4ade80":"#ef4444"}}>
+                        <div key={key} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",color:inDeck?"#4ade80":"#ef4444"}}>
                           <span style={{fontSize:13,lineHeight:1}}>{inDeck?"✓":"✗"}</span>
                           <span style={{color:inDeck?"#e2e8f0":"#64748b",fontSize:11}}>{name}</span>
                         </div>
