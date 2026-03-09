@@ -291,29 +291,41 @@ async function fetchOwnedCards(account) {
   return (payload?.data || []).map(normalizeAtomicAsset).filter(Boolean);
 }
 
-function buildDeck(pool,strat=["legendary","epic","rare","uncommon","common"]){
+function buildDeck(pool){
+  // Group cards by hero, one variant per hero
   const groups=new Map();
   pool.forEach(c=>{ const k=getHeroKey(c); if(!groups.has(k))groups.set(k,[]); groups.get(k).push(c); });
-  const d=[], usedHeroes=new Set(), rc={legendary:0,epic:0,rare:0,uncommon:0,common:0};
-  for(const r of strat){
-    const heroes=[...groups.entries()].filter(([k])=>!usedHeroes.has(k));
-    const shuffled=shuffleArray(heroes);
-    for(const [k,variants] of shuffled){
-      if(d.length>=DECK_SIZE)break;
-      const pick=variants.find(c=>c.rarity===r);
-      if(pick && rc[r]<RARITY_CAPS[r]){ d.push(pick); usedHeroes.add(k); rc[r]++; }
-    }
+  // Sort heroes: fewest rarity options first (most constrained assigned first)
+  const heroList=[...groups.entries()]
+    .map(([k,variants])=>{
+      const rarities=[...new Set(variants.map(c=>c.rarity))].filter(r=>(RARITY_CAPS[r]||0)>0);
+      return {key:k, variants, rarities};
+    })
+    .sort((a,b)=>a.rarities.length-b.rarities.length);
+  const rc={legendary:0,epic:0,rare:0,uncommon:0,common:0};
+  const picks=new Map(); // heroKey -> card
+  // First pass: assign most-constrained heroes first, pick rarity with most remaining capacity
+  for(const hero of heroList){
+    if(picks.size>=DECK_SIZE)break;
+    const available=hero.rarities.filter(r=>rc[r]<RARITY_CAPS[r]);
+    if(available.length===0)continue;
+    // Pick rarity with most remaining room (cap - used)
+    available.sort((a,b)=>(RARITY_CAPS[b]-rc[b])-(RARITY_CAPS[a]-rc[a]));
+    const bestRarity=available[0];
+    const card=hero.variants.find(c=>c.rarity===bestRarity);
+    if(card){ picks.set(hero.key, card); rc[bestRarity]++; }
   }
-  // Second pass: fill remaining with any available rarity per hero
-  for(const r of strat){
-    const heroes=[...groups.entries()].filter(([k])=>!usedHeroes.has(k));
-    for(const [k,variants] of shuffleArray(heroes)){
-      if(d.length>=DECK_SIZE)break;
-      const pick=variants.find(c=>rc[c.rarity]<RARITY_CAPS[c.rarity]);
-      if(pick){ d.push(pick); usedHeroes.add(k); rc[pick.rarity]++; }
-    }
+  // Second pass: any heroes that got skipped, try again with updated caps
+  for(const hero of heroList){
+    if(picks.size>=DECK_SIZE)break;
+    if(picks.has(hero.key))continue;
+    const available=hero.rarities.filter(r=>rc[r]<RARITY_CAPS[r]);
+    if(available.length===0)continue;
+    available.sort((a,b)=>(RARITY_CAPS[b]-rc[b])-(RARITY_CAPS[a]-rc[a]));
+    const card=hero.variants.find(c=>c.rarity===available[0]);
+    if(card){ picks.set(hero.key, card); rc[card.rarity]++; }
   }
-  return d;
+  return [...picks.values()];
 }
 function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[] }; }
 function prepareRound(g){
