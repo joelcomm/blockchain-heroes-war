@@ -193,7 +193,7 @@ const HERO_NAME_POWERS = {
   "super stomp":{ name:"Ground Smash", label:"+1 Strength", bonus:1, flavor:"A blunt-force blow shakes the whole matchup." },
 };
 const ALL_HEROES = [
-  "Bitcoin Bro","Brightstroke","Captain Crypto","CoinCommando","Courage",
+  "Bitcoin Bro","Brightstroke","Captain Crypto","Coin Commando","Courage",
   "CypherFunk","Data Avenger","Dynamic Defiant","Ethermage","Everlasting",
   "Executive Powers","Felonious","Forecaster","Genesis","Gingergirl",
   "Great Gecko","Jester","Lady Lightning","Litespeed","Magic Man",
@@ -305,13 +305,12 @@ function buildDeck(pool){
     .sort((a,b)=>a.rarities.length-b.rarities.length);
   const rc={legendary:0,epic:0,rare:0,uncommon:0,common:0};
   const picks=new Map(); // heroKey -> card
-  // First pass: assign most-constrained heroes first, pick rarity with most remaining capacity
+  // First pass: assign most-constrained heroes first, prefer highest rarity (scarce slots first)
   for(const hero of heroList){
     if(picks.size>=DECK_SIZE)break;
     const available=hero.rarities.filter(r=>rc[r]<RARITY_CAPS[r]);
     if(available.length===0)continue;
-    // Pick rarity with most remaining room (cap - used)
-    available.sort((a,b)=>(RARITY_CAPS[b]-rc[b])-(RARITY_CAPS[a]-rc[a]));
+    available.sort((a,b)=>RARITY_ORDER[b]-RARITY_ORDER[a]);
     const bestRarity=available[0];
     const card=hero.variants.find(c=>c.rarity===bestRarity);
     if(card){ picks.set(hero.key, card); rc[bestRarity]++; }
@@ -322,7 +321,7 @@ function buildDeck(pool){
     if(picks.has(hero.key))continue;
     const available=hero.rarities.filter(r=>rc[r]<RARITY_CAPS[r]);
     if(available.length===0)continue;
-    available.sort((a,b)=>(RARITY_CAPS[b]-rc[b])-(RARITY_CAPS[a]-rc[a]));
+    available.sort((a,b)=>RARITY_ORDER[b]-RARITY_ORDER[a]);
     const card=hero.variants.find(c=>c.rarity===available[0]);
     if(card){ picks.set(hero.key, card); rc[card.rarity]++; }
   }
