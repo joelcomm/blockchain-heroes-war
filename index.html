@@ -197,26 +197,42 @@ const OPPONENTS = [
   { id:"eddie", name:"Epic Eddie", description:"Prefers epic-heavy builds.", strategy:["epic","rare","legendary","uncommon","common"] },
   { id:"crusher", name:"Common Crusher", description:"Leans on low-rarity depth.", strategy:["common","uncommon","rare","epic","legendary"] },
 ];
-const MOCK_CARDS = [
-  { id:"1", templateId:"1001", name:"Satoshi", rarity:"legendary" },
-  { id:"2", templateId:"1002", name:"Vitalik", rarity:"epic" },
-  { id:"3", templateId:"1003", name:"CZ", rarity:"rare" },
-  { id:"4", templateId:"1004", name:"Andreas", rarity:"uncommon" },
-  { id:"5", templateId:"1005", name:"Super Stomp", rarity:"common" },
-  { id:"6", templateId:"1006", name:"Hal", rarity:"legendary" },
-  { id:"7", templateId:"1007", name:"Brock", rarity:"epic" },
-  { id:"8", templateId:"1008", name:"Laura", rarity:"rare" },
-  { id:"9", templateId:"1009", name:"Lyn", rarity:"uncommon" },
-  { id:"10", templateId:"1010", name:"Charlie", rarity:"common" },
+const MOCK_HEROES = [
+  "Genesis","Metalik","Litespeed","CoinCommando","Trilogy",
+  "Magic Man","Master Control","Stampede","Brightstroke","Mr Wick",
+  "CypherFunk","Felonious","The Oracle","Super Stomp","X-Change",
+  "Great Gecko","Courage","Renegade","Lady Lightning","Silver Scientist",
+  "Wyld Wrangler","The Emissary","Data Avenger","The Wizard","Overseer",
+  "Forecaster","Professor Axiom","Maximum","The Chairman","The Senator",
+  "Mz Stability","Dynamic Defiant","Bitcoin Bro","Sooth N Sayer","Gingergirl",
+  "Jester","The Creatrix","Scrivener","Rowdy Rook","Rocketman",
+  "The Prophet","Rock Fierce","The Crusader","Supernova","Ethermage",
+  "Repeat","Executive Powers","Everlasting","Captain Crypto","Megamine",
 ];
+const MOCK_RARITIES = ["common","uncommon","rare","epic","legendary"];
+const MOCK_CARDS = (()=>{
+  const cards=[]; let id=1;
+  MOCK_HEROES.forEach((name,hi)=>{
+    // Each hero gets 2-5 rarity variants
+    const numVariants=2+Math.floor((hi*7+3)%4);
+    const startRarity=hi%3;
+    for(let v=0;v<numVariants&&(startRarity+v)<5;v++){
+      cards.push({ id:String(id++), templateId:String(1000+hi*10+v), name, rarity:MOCK_RARITIES[startRarity+v] });
+    }
+  });
+  return cards;
+})();
 
 /* ═══════════ HELPERS ═══════════ */
+function getHeroKey(c){ return (c.name||"").trim().toLowerCase(); }
 function getHeroPower(c){ if(!c)return null; return HERO_POWERS[String(c.templateId)] || HERO_NAME_POWERS[String(c.name||"").trim().toLowerCase()] || null; }
 function getCardStrength(c){ return RARITY_ORDER[c.rarity]+(getHeroPower(c)?.bonus||0); }
 function titleCase(v){ return v.charAt(0).toUpperCase()+v.slice(1); }
 function shuffleArray(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
 function countByRarity(d){ const c={legendary:0,epic:0,rare:0,uncommon:0,common:0}; d.forEach(x=>c[x.rarity]++); return c; }
-function canAdd(card,deck){ const c=countByRarity(deck); if(deck.length>=DECK_SIZE)return false; return c[card.rarity]<RARITY_CAPS[card.rarity]; }
+function heroInDeck(card,deck){ return deck.some(c=>c.id!==card.id && getHeroKey(c)===getHeroKey(card)); }
+function canAdd(card,deck){ const c=countByRarity(deck); if(deck.length>=DECK_SIZE)return false; if(heroInDeck(card,deck))return false; return c[card.rarity]<RARITY_CAPS[card.rarity]; }
+function groupCardsByHero(cards){ const m=new Map(); cards.forEach(c=>{ const k=getHeroKey(c); if(!m.has(k))m.set(k,[]); m.get(k).push(c); }); const order=["legendary","epic","rare","uncommon","common"]; m.forEach(arr=>arr.sort((a,b)=>RARITY_ORDER[b.rarity]-RARITY_ORDER[a.rarity])); return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0])); }
 
 function normalizeRarity(raw) {
   const v = String(raw || "").trim().toLowerCase();
@@ -264,9 +280,27 @@ async function fetchOwnedCards(account) {
 }
 
 function buildDeck(pool,strat=["legendary","epic","rare","uncommon","common"]){
-  const s=shuffleArray(pool), d=[], used=new Set();
-  for(const r of strat){ const m=s.filter(c=>c.rarity===r); const t=Math.min(m.length,RARITY_CAPS[r]); for(let i=0;i<t;i++){d.push(m[i]);used.add(m[i].id);} }
-  for(const c of s){ if(d.length>=DECK_SIZE)break; if(used.has(c.id))continue; if(canAdd(c,d)){d.push(c);used.add(c.id);} }
+  const groups=new Map();
+  pool.forEach(c=>{ const k=getHeroKey(c); if(!groups.has(k))groups.set(k,[]); groups.get(k).push(c); });
+  const d=[], usedHeroes=new Set(), rc={legendary:0,epic:0,rare:0,uncommon:0,common:0};
+  for(const r of strat){
+    const heroes=[...groups.entries()].filter(([k])=>!usedHeroes.has(k));
+    const shuffled=shuffleArray(heroes);
+    for(const [k,variants] of shuffled){
+      if(d.length>=DECK_SIZE)break;
+      const pick=variants.find(c=>c.rarity===r);
+      if(pick && rc[r]<RARITY_CAPS[r]){ d.push(pick); usedHeroes.add(k); rc[r]++; }
+    }
+  }
+  // Second pass: fill remaining with any available rarity per hero
+  for(const r of strat){
+    const heroes=[...groups.entries()].filter(([k])=>!usedHeroes.has(k));
+    for(const [k,variants] of shuffleArray(heroes)){
+      if(d.length>=DECK_SIZE)break;
+      const pick=variants.find(c=>rc[c.rarity]<RARITY_CAPS[c.rarity]);
+      if(pick){ d.push(pick); usedHeroes.add(k); rc[pick.rarity]++; }
+    }
+  }
   return d;
 }
 function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[] }; }
@@ -583,24 +617,47 @@ function App(){
             ? `Showing ${ownedCards.length} cards from ${walletAccount}'s inventory.`
             : "Showing demo inventory. Connect your WAX wallet to load your real cards."}
         </div>
-        <div className="grid-3">
-          {ownedCards.map(card=>{
-            const inDeck=deck.some(c=>c.id===card.id);
-            const ok=canAdd(card,deck);
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          {groupCardsByHero(ownedCards).map(([heroKey, variants])=>{
+            const selectedVariant=variants.find(c=>deck.some(d=>d.id===c.id));
+            const heroImg=variants[0]?.img;
             return(
-              <div key={card.id} className={`collection-card ${inDeck?"in-deck-"+card.rarity:""}`}>
-                {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
-                  <img src={buildImageUrl(card.img)} alt={card.name} style={{width:"100%",height:120,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
-                </div>}
-                <div className={`name-${card.rarity}`} style={{fontSize:18,fontWeight:700}}>{card.name}</div>
-                <div className="flex-wrap mt-2 gap-2">
-                  <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
-                  <span className="badge badge-str">STR: {getCardStrength(card)}</span>
-                  {getHeroPower(card)&&<span className="text-xs" style={{color:"#fde68a"}}>{getHeroPower(card).name}</span>}
+              <div key={heroKey} className={`collection-card ${selectedVariant?"in-deck-"+selectedVariant.rarity:""}`} style={{padding:16}}>
+                <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+                  {heroImg && <div style={{flexShrink:0,width:80,height:100,borderRadius:10,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:4}}>
+                    <img src={buildImageUrl(heroImg)} alt={variants[0].name} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
+                  </div>}
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:18,fontWeight:700,marginBottom:8,color:selectedVariant?undefined:"#94a3b8"}}>
+                      {variants[0].name}
+                      {selectedVariant&&<span className={`badge badge-${selectedVariant.rarity}`} style={{marginLeft:8,fontSize:11}}>{titleCase(selectedVariant.rarity)} selected</span>}
+                    </div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                      {variants.map(card=>{
+                        const inDeck=deck.some(c=>c.id===card.id);
+                        const otherSelected=selectedVariant&&!inDeck;
+                        const ok=canAdd(card,deck);
+                        return(
+                          <button key={card.id}
+                            className={`btn btn-sm ${inDeck?"btn-secondary":""}`}
+                            style={{
+                              display:"flex",alignItems:"center",gap:6,padding:"6px 12px",
+                              opacity:otherSelected?0.35:1,
+                              border:inDeck?"2px solid #fde68a":"1px solid rgba(255,255,255,0.1)",
+                              background:inDeck?"rgba(253,230,138,0.15)":"rgba(255,255,255,0.05)",
+                            }}
+                            onClick={()=>toggleCard(card)}
+                            disabled={!inDeck&&!ok}
+                          >
+                            <span className={`badge badge-${card.rarity}`} style={{fontSize:10}}>{titleCase(card.rarity)}</span>
+                            <span style={{fontSize:12,color:"#e2e8f0"}}>STR: {getCardStrength(card)}</span>
+                            <span style={{fontSize:11,color:inDeck?"#fde68a":"#64748b"}}>{inDeck?"✓":""}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-                <button className={`btn ${inDeck?"btn-secondary":"btn-primary"} btn-sm w-full mt-3`} onClick={()=>toggleCard(card)} disabled={!inDeck&&!ok}>
-                  {inDeck?"Remove":"Add to Deck"}
-                </button>
               </div>
             );
           })}

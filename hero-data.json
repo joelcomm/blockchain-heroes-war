@@ -1,0 +1,604 @@
+{
+  "heroes": [
+    {
+      "cardNumber": 1,
+      "name": "Genesis",
+      "stats": {
+        "Age": "Unknown ???",
+        "Nationality": "Unknown ???",
+        "Status": "Unknown ???",
+        "Imposter Identity Claimants": "25"
+      },
+      "lore": "All that's known of the enigmatic Genesis is that he unleashed Blockchain upon the world - whether he developed its power himself or merely discovered it is a matter of heated debate.",
+      "tagline": "His whereabouts are currently unknown."
+    },
+    {
+      "cardNumber": 2,
+      "name": "Metalik",
+      "stats": {
+        "Bulletproof": "Affirmative",
+        "Internal Smart Contracts": "402",
+        "Grip Strength": "400kg / 880lbs",
+        "Favorite Metal Genre": "Russian Heavy Metal"
+      },
+      "lore": "One of the first to adapt Blockchain into a different form - smart contracts - a young savant infused his own body with the power, going so far as to reinforce his internal organs with dynamic transactional immutability.",
+      "tagline": "The result was Металик, a monstrous and steely defender of freedom!"
+    },
+    {
+      "cardNumber": 3,
+      "name": "Litespeed",
+      "stats": {
+        "Maximum recorded speed": "362,000km/s",
+        "Global circumnavigations": "84",
+        "Reaction time": "0.000025 seconds",
+        "Typing Speed": "529 WPM"
+      },
+      "lore": "The velocity of Blockchain was an answer waiting for the right person to ask the question, \"just how fast can Blockchain run?\" As it happens, the answer is \"faster than light\"! That's what this marathoner discovered.",
+      "tagline": "By honing control over high-velocity Blockchain, he found he was able to break the vehicular landspeed record - on foot."
+    },
+    {
+      "cardNumber": 4,
+      "name": "CoinCommando",
+      "stats": {
+        "Looks cool walking away from explosions": true,
+        "Successful military operations": "22",
+        "Actual uses of Ka-Bar survival knife": "0",
+        "Tinnitus": "In both ears"
+      },
+      "lore": "A world kept under control isn't very friendly to individuals who specialize in things that go boom. As a former spec ops commando, this demolitions expert found renewed meaning when the Blockchain revolt began, gleefully employing his skills with the Blockchain Heroes to eliminate Centralizer assets.",
+      "tagline": "His explosive expertise combines with an explosive personality to keep things interesting!"
+    },
+    {
+      "cardNumber": 5,
+      "name": "Trilogy",
+      "stats": {
+        "Tons of steel assembled": "35,400",
+        "Individual buildings constructed": "36",
+        "Estimated project jobs": "41,000",
+        "Steam-powered cores": "1"
+      },
+      "lore": "Famous futurists have long-predicted that AI would bring about the destruction of humanity, but the Trilogy Project has ensured just the opposite!",
+      "tagline": "This controversial engineering of self-improving AI has wrought a gargantuan construction-minded robot who just won't stop building. If anything, the biggest problem Trilogy's caused is that it's difficult to keep up with all the construction projects!"
+    },
+    {
+      "cardNumber": 6,
+      "name": "Magic Man",
+      "stats": {
+        "Favorite illusion": "Making Centralizers disappear",
+        "Unique tricks/illusions": "302",
+        "Shows performed": "2020",
+        "Attractive women sawed in half": "69"
+      },
+      "lore": "A humble entertainer, Magic Man's transformation into a Blockchain-wielding superhero was made complete mid-show when he reached into his top hat to pull forth a rabbit... and was pulled in himself!",
+      "tagline": "That was an impressive enough stunt on its own, but when he re-emerged onstage in a dazzling flash of stars, the audience knew they'd just witnessed true Blockchain magic."
+    },
+    {
+      "cardNumber": 7,
+      "name": "Master Control",
+      "stats": {
+        "Lines of code authored": "2,104,584",
+        "Disc golf championships won": "6",
+        "Fights for": "More users",
+        "Energy drinks slammed": "~40,000"
+      },
+      "lore": "Software engineer by day, pro disc golfer by night, one man found a way to unite these two distinct passions with the power of Blockchain and become Master Control.",
+      "tagline": "He effortlessly guides his homing \"smart discs\" in on their targets. They always return to his hands without flaw and sometimes with steam."
+    },
+    {
+      "cardNumber": 8,
+      "name": "Stampede",
+      "stats": {
+        "Client rating": "5 stars",
+        "Birthday parties entertained": "723",
+        "Horn injuries delivered": "2",
+        "Affinity for anything with hooves": "0"
+      },
+      "lore": "An innocent kids' entertainer who lost a bet in a costume store, this man donned a full-body unicorn outfit that had, unbeknownst to him, been infused with chaotic Blockchain essence of privacy.",
+      "tagline": "It granted him exceptional power fueled by children's laughter, transforming him into Stampede!"
+    },
+    {
+      "cardNumber": 9,
+      "name": "Brightstroke",
+      "stats": {
+        "Highest sum fetched for his art": "200,000 BTC",
+        "Original works produced": "420",
+        "Favorite color": "Burnt Orange",
+        "Canvasses ripped": "17"
+      },
+      "lore": "He'd been a talented and expressive artist before, but when he dipped his paintbrush into liquid Blockchain, this painter's art was transformed into living color. With a decisive slash of his brush, he could coat entire buildings!",
+      "tagline": "Whether he's rendering shields for his allies or raining a flurry of strikes upon his foes, Brightstroke is a valuable member of the Blockchain Heroes."
+    },
+    {
+      "cardNumber": 10,
+      "name": "Mr Wick",
+      "stats": {
+        "Hot Blooded": "Temperature of 103°F",
+        "Fiat burned": "~$21,000,000",
+        "Specialization": "Fire arms",
+        "Meat cooking preference": "Well done"
+      },
+      "lore": "Once in the employ of the Centralizers, a fire was lit in this hotheaded accountant when the Blockchain revolt flared up and he came to understand he'd been burning the candle at the wrong end. With a spark of bravery, he called upon the power of Blockchain and burned his bridges - then burned down the building.",
+      "tagline": "Now known only as Mr. Wick, he's got a short fuse and intends to turn up the heat on the Centralizers!"
+    },
+    {
+      "cardNumber": 11,
+      "name": "CypherFunk",
+      "stats": {
+        "Resistance to sleep deprivation": "14 days",
+        "CypherFunk followers": "~2.1 million",
+        "Centralizer system breaches": "36",
+        "Bitcoin Price Prediction": "$10m/BTC"
+      },
+      "lore": "CypherFunk's radical views on a user's rights to privacy, anonymity and ownership caused problems for the Centralizers well before the Blockchain Heroes existed, which is why they had him assassinated. However, a mysterious benefactor ensured his body was cryogenically preserved. After Genesis' disappearance, CypherFunk was revived with a set of cybernetic and cryptographic augmentations.",
+      "tagline": "Now CypherFunk is mightier than ever!"
+    },
+    {
+      "cardNumber": 12,
+      "name": "Felonious",
+      "stats": {
+        "Incarcerations": "16",
+        "Escapes": "17 (He once broke in)",
+        "Bench max": "420lbs",
+        "Daily bong hits": "50 +/-"
+      },
+      "lore": "Battling the Centralizers has its risks, and none knows them more thoroughly than Felonious. A relentless punk who risked his own freedom to fight for the freedom of others, he was jailed and escaped over and over.",
+      "tagline": "During his incarceration, he spent every waking minute optimizing his strength, bulking into a mountain of muscle. The hard time he's done has hardened him majorly!"
+    },
+    {
+      "cardNumber": 13,
+      "name": "The Oracle",
+      "stats": {
+        "Disciples": "~1 million",
+        "Books authored": "23",
+        "Public lectures given": "536",
+        "Eyes": "3"
+      },
+      "lore": "Before the ethereal force of Blockchain was released into the world, psychics were merely convincing frauds. Some wise individuals, however, gained fantastic insight with the coming of Blockchain.",
+      "tagline": "The Oracle is one such individual, whose mind is opened to the future and whose lips impart great wisdom upon those humble enough to listen. You would be wise to listen as well!"
+    },
+    {
+      "cardNumber": 14,
+      "name": "Super Stomp",
+      "stats": {
+        "Centralizer nickname": "The Decentralized Demon",
+        "Competitions won": "143",
+        "Distinct arts mastered": "167",
+        "Weekly spars": "20"
+      },
+      "lore": "Train your body into a machine for thirteen hours a day. Consume only what it needs. Study the techniques of the masters, and practice against them. Do only this for decades. Then, breathe in the Blockchain.",
+      "tagline": "Super Stomp has done this, and now he's a master of every martial art known to man. His body has been made an immutable temple, and he wields his discipline with equal parts eloquence and fervor!"
+    },
+    {
+      "cardNumber": 15,
+      "name": "X-Change",
+      "stats": {
+        "Unique appearances taken on": "785",
+        "Successful Centralizer infiltrations": "56",
+        "Caused new security protocols": "49 times",
+        "Favorite disguise": "Supernova"
+      },
+      "lore": "X-Change was the type to blend into a crowd, even before he stumbled upon a mask formed entirely out of solidified Blockchain.",
+      "tagline": "When this mask granted him the ability to change his appearance, he realized he could be of immense use to the Blockchain Heroes, and was accepted as a member of the team when he showed up to a meeting with Overseer... as Overseer."
+    },
+    {
+      "cardNumber": 16,
+      "name": "Great Gecko",
+      "stats": {
+        "Maximum groundspeed": "260kph",
+        "Maximum leap height": "150m",
+        "Minimum heart rate": "5bpm",
+        "Flies intentionally eaten": "No Answer"
+      },
+      "lore": "Bitten by an experimental radioactive lizard that had escaped its containment unit, Great Gecko quickly found that his DNA had been altered and enhanced to grant him an unusual set of talents - climbing hazardous surfaces, superhuman speed and strength, and incredible powers of perception.",
+      "tagline": "Seeking a use for these abilities, the Centralizers rejected his strangeness - and he instead found a home with the Blockchain Heroes."
+    },
+    {
+      "cardNumber": 17,
+      "name": "Courage",
+      "stats": {
+        "Distance flown": "~20,582,818 km",
+        "Centralizers smacked": "86",
+        "Faster than a speeding train": "Yes",
+        "Nickname": "B.A.T. Man"
+      },
+      "lore": "Only one (sane) man is characterized by total and absolute fearlessness: Courage. His powers of strength and flight, granted to him by atmospheric Blockchain combined with his expertise in programming, allow him to rise against any force the Centralizers can muster.",
+      "tagline": "From this high view, Courage is able to stop all evil Centralizers advertising bots and scripts. No Centralizer has ever earned his attention!"
+    },
+    {
+      "cardNumber": 18,
+      "name": "Renegade",
+      "stats": {
+        "Weapons in personal armory": "69",
+        "Killshots miraculously survived": "17",
+        "Captures by the Centralizers asylum": "7",
+        "Odd interest": "Whales Mating"
+      },
+      "lore": "On all accounts, Renegade should be dead. He's survived explosions, stabbing, burning, poisoning, bullets, blunt head trauma, near overdoses, scorned women murder attempts and more - almost always due to a clear lack of self-preservation. Overseer has confirmed that there's absolutely nothing unnatural about Renegade, except that no matter how many times the insane asylum straitjackets him, he's back on the streets within 5 hours, gone without a trace, like a Ghost.",
+      "tagline": ""
+    },
+    {
+      "cardNumber": 19,
+      "name": "Lady Lightning",
+      "stats": {
+        "Range of force": "0.001-1 amp",
+        "Attack range": "1.4km - 14km",
+        "Primary conductor": "Copper",
+        "Dislikes": "Rubber and Centralizers"
+      },
+      "lore": "Lightning is guaranteed to strike twice when Lady Lightning's around! An injection of a Blockchain-and-chemical mixture at Wardencliffe insulated her entire body from electric shock, and now she wields the storm like her personal weapon.",
+      "tagline": "Incapacitating Centralizers and shorting electrical systems are her specialities, and she's not leaving until the oppressive forces of control have ridden the lightning!"
+    },
+    {
+      "cardNumber": 20,
+      "name": "Silver Scientist",
+      "stats": {
+        "Data transmutated": "9 exabytes",
+        "Age": "140 (but moves as if 45)",
+        "Vials shattered": "7,018",
+        "Special": "Discovered transmutation of data into gold"
+      },
+      "lore": "An alchemical genius prior to the release of Blockchain, Silver Scientist was enormously empowered when he discovered that data stored on Blockchain could be transliterated into physical matter - now he's an alchemical catastrophe!",
+      "tagline": "Despite his unassuming appearance, Centralizers whisper his name in hushed circles with terror - after all, data is one of the most powerful weapons to wield against them!"
+    },
+    {
+      "cardNumber": 21,
+      "name": "Wyld Wrangler",
+      "stats": {
+        "Scambeasts lassoed": "648",
+        "Max concurrent airtime": "6h",
+        "Rodeo competitions won": "127",
+        "Seen without hat": "0 times"
+      },
+      "lore": "As the most celebrated up-and-comer among the frontier defense force, Wyld Wrangler's got a storied and successful experience in fending off feral scambeasts. She's a guaranteed shot, whether with a throw of the lasso or pull of the trigger, and that deadeye's made her a natural choice for someone to bring rough-and-tumble expertise to the Blockchain Heroes.",
+      "tagline": "The Centralizers are fixin' for a whole mess of trouble!"
+    },
+    {
+      "cardNumber": 22,
+      "name": "The Emissary",
+      "stats": {
+        "Blockchain Bill of Rights delivered": "12",
+        "Resolutions passed": "39",
+        "Centralizer officials converted": "18",
+        "Rebels recruited": "~54000"
+      },
+      "lore": "The Emissary has made a life of riding the edge of the Centralizer bureaucracy, advocating for a free people from within the system. With the rise of the Blockchain Heroes, however, she's paved the way for a new, self-governing body of brave citizens centered on the use of Blockchain to better everyone's lives.",
+      "tagline": "A powerful and persuasive orator, Emissary has inspired rumors that her elegant and firm rhetoric may not be entirely natural!"
+    },
+    {
+      "cardNumber": 23,
+      "name": "Data Avenger",
+      "stats": {
+        "P.O.G. capacity": "400 9mm rounds",
+        "Centralizer policies exploited": "37",
+        "Enemy robots dissembled": "102",
+        "Data Secured": "17.2 Zettabytes"
+      },
+      "lore": "Once a high-ranking officer in Centralizer security, this data scientist & drone expert blew the whistle and defected when she realized the Centralizers' control-mongering deceit. Now, she puts her intensive knowledge of Centralizer policy to work against them with the help of her trusty gun-drone, P.O.G.",
+      "tagline": "No one's better equipped to take down enemy firewalls!"
+    },
+    {
+      "cardNumber": 24,
+      "name": "The Wizard",
+      "stats": {
+        "Unique scripts executed": "524",
+        "Specialization": "Antiterrorism",
+        "Longest incantation": "234 words",
+        "Choice of outfit": "Medieval Merlin"
+      },
+      "lore": "The great and powerful Wizard is a master of cybermagic, an ascendant from a mere hacker into one who hacks reality itself. A man of a thousand tricks, Wizard excels both in eliminating security vulnerabilities and in disrupting Centralizer ranks.",
+      "tagline": "If you tried to fill a spellbook with all of his technomagical scripts, it would rival Centralizer tax code in length!"
+    },
+    {
+      "cardNumber": 25,
+      "name": "Overseer",
+      "stats": {
+        "Missions supported": "187",
+        "Briefings imparted": "256",
+        "Press conferences held": "75",
+        "Unofficial alias": "Boss"
+      },
+      "lore": "Though all of the Blockchain Heroes are powerful in their own right, behind every operation is a great source of support: That's Overseer. She's the glue that holds the team together, the public defender when Centralizer psychological operations defame the Heroes.",
+      "tagline": "Though many question whether there's anything truly super about Overseer, her vital role in the battle against Centralizer oppression is unambiguous!"
+    },
+    {
+      "cardNumber": 26,
+      "name": "Forecaster",
+      "stats": {
+        "Max windspeed": "~250km/h",
+        "Tornadoes spun up": "4",
+        "Civilian property damaged": "$0",
+        "Favorite weather": "Sun showers"
+      },
+      "lore": "Mother nature, a mighty and decentralized force, has notoriously few allies. Forecaster counts himself proud to be among them. Once a talented meteorologist, Forecaster breathed in the winds of change with the release of Blockchain and left television for sunnier pastures.",
+      "tagline": "Now, he speaks on behalf of both gaia and the people, delivering stormy rebuke upon those who would seek to control the world. He's ready to blow central authority away!"
+    },
+    {
+      "cardNumber": 27,
+      "name": "Professor Axiom",
+      "stats": {
+        "Emergent proofs": "137",
+        "Estimated IQ": "~280",
+        "Augmentation cost": "$9.6 billion",
+        "Dislikes": "EMPs & KC Chiefs"
+      },
+      "lore": "The esteemed and brilliant mathematician Professor Axiom was on the brink of death from terminal illness when Overseer decided that it was time to put an experimental cybernetic augmentation program to the test. Axiom contends that he didn't lose anything - he simply upgraded!",
+      "tagline": "With his cognitive function enhanced by cutting-edge processing hardware, his genius has been amplified three-fold, and now he's an invaluable engineering and analytical asset to the Blockchain Heroes!"
+    },
+    {
+      "cardNumber": 28,
+      "name": "Maximum",
+      "stats": {
+        "Wall penetrations": "26",
+        "Centralizer events crashed": "4",
+        "Favorite Actor": "Kool-Aid Man",
+        "Unnecessary exits made": "2"
+      },
+      "lore": "For all the mysteries of Blockchain, one thing is certain: It seeks out individuals capable of realizing its potential. Maximum, an unsuspecting competitive weightlifter, is one such individual.",
+      "tagline": "An immutable momentum now fuels his strength, transforming an already-powerful man into a truly unstoppable force! At least, he appears to be unstoppable - but what would happen if he were to charge Mz Stability?"
+    },
+    {
+      "cardNumber": 29,
+      "name": "The Chairman",
+      "stats": {
+        "Projectiles deflected": "3025",
+        "Shield activations": "8",
+        "Max shield uptime": "3h",
+        "Signature Technique": "The turtle"
+      },
+      "lore": "Even within the bowels of the Centralizer ranks, some rare men and women sought to use their authority for good - but nobody could have seen that one of their leaders, the Chairman, would turn to the Blockchain side.",
+      "tagline": "His unwavering commitment to defending the common man shined from the moment of the revolt, and now he puts his energy shields to work in protecting common liberty!"
+    },
+    {
+      "cardNumber": 30,
+      "name": "The Senator",
+      "stats": {
+        "Sessions attended": "1776",
+        "Bipartisan votes cast": "4052",
+        "Overreaches repealed": "14",
+        "Power suits": "9"
+      },
+      "lore": "Embedded within the convoluted Centralizer legal system, the Senator is a covert operative for justice. The only of the Blockchain Heroes who publicly deny affiliation with said heroes, the Senator leverages her position of representation to fight battles on the ugliest stage: Politics.",
+      "tagline": "Still, Centralizers should hope the day never comes that she must reveal her true colors, else her mighty hammer will lay waste to pillars of central control!"
+    },
+    {
+      "cardNumber": 31,
+      "name": "Mz Stability",
+      "stats": {
+        "Guilty pleasure": "Weaponizing stop signs",
+        "Shenanigans halted": "67",
+        "Military hardware ruined": "$7.3m",
+        "Nickname": "Stonewall"
+      },
+      "lore": "As a chemist and concert promoter, Mz Stability knew well that not an inch more could be granted to the Centralizers. Upon Genesis' disappearance, she was rewarded for her dedication to morality with a powerful infusing of Blockchain. Now, she doesn't have to give an inch at all! Though she doesn't possess much momentum herself, she can stop anything from bullets to bullet trains.",
+      "tagline": "Though, what would happen if she had to stop Maximum?"
+    },
+    {
+      "cardNumber": 32,
+      "name": "Dynamic Defiant",
+      "stats": {
+        "Furthest leap": "80m",
+        "Heaviest object lifted": "Fighter jet",
+        "Max force velocity": "70m/s",
+        "Hobby": "Hands-free snacking"
+      },
+      "lore": "When the hacker DynaDef received a message on his computer purportedly from Genesis himself, he was skeptical. After following a cryptic series of instructions, he broke open a cryptographic cache and found enlightenment!",
+      "tagline": "Armed with the truth of reality, he uses telekinesis to alter it as he sees fit - and stopping bullets in their tracks is the least impressive of his feats! The Centralizers are mad at what Defiant did!"
+    },
+    {
+      "cardNumber": 33,
+      "name": "Bitcoin Bro",
+      "stats": {
+        "Smoke Screen Escapes facilitated": "6",
+        "Arrests on trivial infractions": "9",
+        "Transcendent visions": "21",
+        "Altcoin tattoos": "7"
+      },
+      "lore": "Bitcoin Bro AKA Bitcoin Bro Bro, was technically the first person to use the word \"Blockchain\". After hitting a joint laced with LSD, Bro Bro was launched into a vision of the future to come and immediately took to the streets to proclaim it enthusiastically with bodily QR Codes and art.",
+      "tagline": "It wasn't until his future was realized by the Blockchain Heroes - and his talent for spawning smokescreens was put to practical use!"
+    },
+    {
+      "cardNumber": 34,
+      "name": "Sooth 'N Sayer",
+      "stats": {
+        "Podcast Episodes": "500+",
+        "Dad Jokes Delivered": "125,814",
+        "Interviews survived": "420",
+        "Show Guests Banned": "1"
+      },
+      "lore": "When two cryptocurrency-focused podcasting partners attempted to start a fateful new episode, dimensional rifts suddenly opened that sucked them both through the fabric of reality, depositing them in the world of Blockchain Heroes with a big twist - they'd been merged into a single body!",
+      "tagline": "Now, Sooth n' Sayer put their colorful humor, insightful commentary, and future vision to work in the fight against the Centralizers!"
+    },
+    {
+      "cardNumber": 35,
+      "name": "Gingergirl",
+      "stats": {
+        "Shows hosted": "645",
+        "Average viewership": "4m",
+        "Hairstyle": "Inferno",
+        "Kangaroos boxed": "3 (simultaneously)"
+      },
+      "lore": "There was little hope of anonymity for this popular TV tech show host from the other side of the world once she was discovered by Overseer.",
+      "tagline": "There was little doubt in her mind, as well, when a pair of powergloves came in the mail with a letter stamped with the Blockchain Heroes logo. Her expertise would be needed for more than video - and the gloves are on!"
+    },
+    {
+      "cardNumber": 36,
+      "name": "Jester",
+      "stats": {
+        "Comedy specials": "3",
+        "Centralizers punk'd": "273",
+        "Unique pranks & trolls": "???",
+        "Location": "Where you least expect"
+      },
+      "lore": "The mighty can wield Blockchain regardless of their profession, and nobody demonstrates this better than Jester. Formerly a humble stand-up comedian, Jester received an unexpected boost of Blockchain power and became a master of pranks and tomfoolery.",
+      "tagline": "Can he teleport? Conjure gag props? It seems that whatever is necessary for the joke is within his ability!"
+    },
+    {
+      "cardNumber": 37,
+      "name": "The Creatrix",
+      "stats": {
+        "Laws of physics broken": "5",
+        "Children homes built": "240",
+        "Ammunition conjured": "A lot",
+        "Changes hair color": "weekly"
+      },
+      "lore": "Creatrix was already an alter-ego, and the hair was a giveaway. She was reputable for creating digital content, positive communities, and global opportunities - with a little Blockchain and a lot of ingenuity, developing this creative power into the ability to manifest new matter has made Creatrix one of the mightiest Blockchain Heroes, as she can create anything needed at any time!",
+      "tagline": "She's one of the Centralizers greatest foes!"
+    },
+    {
+      "cardNumber": 38,
+      "name": "Scrivener",
+      "stats": {
+        "Books written": "13",
+        "Psychic WPM": "451",
+        "Articles Combatting Fake News": "17,804",
+        "Weakness": "Thinking out loud"
+      },
+      "lore": "Even authors could benefit from Blockchain - that's what the pseudonymous best-seller Scrivener discovered early on! Although she doesn't just store her stories on the immutable platform - she's developed the ability to think writing into existence!",
+      "tagline": "Many of her articles contain rabbit holes that hold research which destroy many of the Centralizer's fake news, narratives, and propaganda!"
+    },
+    {
+      "cardNumber": 39,
+      "name": "Rowdy Rook",
+      "stats": {
+        "Max dive speed": "190kph",
+        "Spots prey from": "800m",
+        "Degree": "Aerodynamics",
+        "Sleep schedule": "Early bird"
+      },
+      "lore": "Born in a Wuhan lab as a daring attempt to create a hybrid, Rowdy Rook got off lucky - half man, half bird, he's inherited the best of both worlds: The cognitive power and creativity of humanity, and the air superiority and super-keen sight of a hawk. Originally to be used as a Centralizer pawn, the rook broke free and joined the Blockchain Heroes!",
+      "tagline": "Just don't mention the talons - they're a touchy subject!"
+    },
+    {
+      "cardNumber": 40,
+      "name": "Rocketman",
+      "stats": {
+        "Top speed": "Mach 15",
+        "Crash landings": "2",
+        "Nickname": "Psycho",
+        "Psych health": "Perfectly sane"
+      },
+      "lore": "An obsessed aircraft mechanic with big dreams, \"Rocketman\" had already accepted his nickname. Ultimately, he ended up singlehandedly pioneering jetpack technology, and made it work by strapping on a self-fueling turbine!",
+      "tagline": "He's even responsible for the design used by Wyld Wrangler. He even kept a diary of how he made them. The Heroes are really taking off now!"
+    },
+    {
+      "cardNumber": 41,
+      "name": "The Prophet",
+      "stats": {
+        "Followers converted": "108k",
+        "Subject of": "3 Mockumentaries",
+        "Weird miracle": "fiat into wine",
+        "Favorite color": "Orange Green"
+      },
+      "lore": "This TV producer was swept up in the initial wave of progress after Blockchain's release. He recruited swaths of people to enthusiastically pursue its use cases - but after Genesis' disappearance, he began to decry its original form. Instead, he began extolling the virtues of a subtype of Blockchain, and more interestingly, performing miracles in its name.",
+      "tagline": "Today, he roams the landscape converting unbelievers!"
+    },
+    {
+      "cardNumber": 42,
+      "name": "Rock Fierce",
+      "stats": {
+        "Max Pitch Speed": "137mph / 220kph",
+        "Tiresome Stone Puns": "32",
+        "Rock Operas Memorized": "7",
+        "Favorite Mineral": "Not Gold"
+      },
+      "lore": "An innocent geologist was accidentally left trapped in a matter recombobulation chamber with a collection of minerals intended to form an experimental alloy. The result? A rolling stone that gathers no moss!",
+      "tagline": "A man with a stony complexion! The Centralizers had better be ready to rock and roll, because Rock Fierce is always but a stone's throw away..."
+    },
+    {
+      "cardNumber": 43,
+      "name": "The Crusader",
+      "stats": {
+        "Shield power": "Tier 6",
+        "Headlines made": "32",
+        "SIM cards jacked": "1",
+        "Biggest complaint": "Hooligans"
+      },
+      "lore": "An early adopter of Blockchain as a financial resource, this man was given no recourse when his assets were seized by Centralizers. He developed his own immutable armory, rallied his community to do the same, and rebelled against the theft and fraud.",
+      "tagline": "Nobody's taking his sword and shield from him, and evil should fear the keenness of his Blockchain blade!"
+    },
+    {
+      "cardNumber": 44,
+      "name": "Supernova",
+      "stats": {
+        "Scholarly articles authored": "64",
+        "Unique reactions discovered": "7",
+        "Average strike": "50,000psi",
+        "Mistaken for": "Cleaning product mascots"
+      },
+      "lore": "Andrew Nova was a celebrated nuclear physicist. After Genesis disappeared, he stumbled onto a special subatomic reaction possible by introducing blockchain, and developed powerful and explosive abilities! Now known as Supernova, he's one of the single mightiest figures in the Blockchain Heroes.",
+      "tagline": "Supernova strikes fear into the hearts of tyrants everywhere!"
+    },
+    {
+      "cardNumber": 45,
+      "name": "Ethermage",
+      "stats": {
+        "Smart Contracts authored": "47",
+        "Spells cast": "68",
+        "Weakness": "Gaseousness",
+        "Favorite spell": "Begone, fiat!"
+      },
+      "lore": "This student of mysticism was optimally prepared to receive the blessing of Blockchain upon its global release - though only after Metallik's transformation did his understanding advance enough that he was capable of wielding its more airy powers.",
+      "tagline": "He became the Ethermage, casting uncounterable spells reinforced with smart contracts!"
+    },
+    {
+      "cardNumber": 46,
+      "name": "Repeat",
+      "stats": {
+        "Favorite Hobby": "Men's Pair Rowing",
+        "Favorite Day of the week": "Tuesday",
+        "Double-Takes": "459",
+        "Star Sign": "Gemini"
+      },
+      "lore": "Nobody knows Repeat's secret identity, but rumors tell that he - they - were born during the Great Deja Vu of '81. Repeat acts in such perfect unison, battles with such flawless symmetry, and mirrors himself - each other - with such precision that it's unclear whether Repeat is a single individual who controls two bodies, or identical super-twins.",
+      "tagline": "The Centralizers are seeing double!"
+    },
+    {
+      "cardNumber": 47,
+      "name": "Executive Powers",
+      "stats": {
+        "Net Worth": "$2,109,420,081.41",
+        "Diversified Investments": "843",
+        "Gold Plated Helicopters": "All of them",
+        "Power Ties": "1 Bitcoin Tie"
+      },
+      "lore": "Thomas Powers always aims high, and so does his portfolio. Powers is a mastermind financial guru, with capital wisdom so consistently spot-on that competing speculators speculate that he must've acquired some sort of superpower.",
+      "tagline": "Now that Blockchain is in play, he's set his sights on immutable success, and he's ready to ride the bullish market into the stars."
+    },
+    {
+      "cardNumber": 48,
+      "name": "Everlasting",
+      "stats": {
+        "Sword art forms known": "23",
+        "Challengers defeated": "99",
+        "Seconds warped": "1200",
+        "Additional talent": "grilling"
+      },
+      "lore": "An exceptional and unnamed swordsman roaming the eastern lands found a new identity when the release of Blockchain caused a clap of thunder in the eastern sky, and two blades fell from the heavens before the swordsman. Upon grasping their hilts, his consciousness warped, and he found himself able to travel through immediate time. Rendered seemingly immortal by the blades' power, he took on the moniker of \"Everlasting\" and sought their mysterious origin!",
+      "tagline": ""
+    },
+    {
+      "cardNumber": 49,
+      "name": "Captain Crypto",
+      "stats": {
+        "Highest decibels reached": "142.1",
+        "Ears damaged": "541",
+        "Price of first BTC": "$0.97",
+        "Favorite Instrument": "Electric Ukulele"
+      },
+      "lore": "As a boisterous stock trader before the release of Blockchain, Captain Currency's established persona was a no-brainer for the Blockchain Heroes' outreach. However, once he was imbued with the power of devastating soundwave projections, his transformation into Captain Crypto landed him a spot on the team for good.",
+      "tagline": "Cover your ears - things are about to get loud!"
+    },
+    {
+      "cardNumber": 50,
+      "name": "Megamine",
+      "stats": {
+        "Tunnel length dug": "300km",
+        "Drill transistors": "200 billion",
+        "Cave-ins survived": "8",
+        "Mountains leveled": "1"
+      },
+      "lore": "When Dr. Daiyamondo's engineering pursuits led him to discover an alternative use for computer graphics cards, he sealed himself in his garage with an assortment of scrap and GPU hardware.",
+      "tagline": "After several long days of toil, he strode forth with a mighty mining suit equipped with the most powerful drills known to man!"
+    }
+  ]
+}
