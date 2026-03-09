@@ -36,12 +36,12 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   .tabs-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 4px; margin: 20px 0; }
-  .tab-btn { padding: 10px; border: none; border-radius: 12px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+  .tab-btn { padding: 10px; border: none; border-radius: 12px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s; }
   .tab-btn.active { background: rgba(255,255,255,0.12); color: #f1f5f9; }
   .tab-btn:hover { color: #e2e8f0; }
   .ui-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; margin-bottom: 20px; backdrop-filter: blur(12px); }
-  .ui-card-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-  .btn { padding: 10px 20px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+  .ui-card-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+  .btn { padding: 10px 20px; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
   .btn-primary { background: #6366f1; color: white; }
   .btn-primary:hover { background: #818cf8; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -55,8 +55,8 @@
   .btn-outline.active-btn { background: #6366f1; color: white; border-color: #6366f1; }
   .btn-secondary { background: rgba(255,255,255,0.1); color: #e2e8f0; }
   .btn-secondary:hover { background: rgba(255,255,255,0.18); }
-  .btn-sm { padding: 8px 14px; font-size: 13px; }
-  .badge { display: inline-flex; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; border: 1px solid; }
+  .btn-sm { padding: 8px 14px; font-size: 15px; }
+  .badge { display: inline-flex; padding: 4px 12px; border-radius: 9999px; font-size: 14px; font-weight: 600; border: 1px solid; }
   .badge-legendary { background: rgba(251,191,36,0.2); color: #fde68a; border-color: rgba(251,191,36,0.4); }
   .badge-epic { background: rgba(168,85,247,0.2); color: #d8b4fe; border-color: rgba(168,85,247,0.4); }
   .badge-rare { background: rgba(34,211,238,0.2); color: #a5f3fc; border-color: rgba(34,211,238,0.4); }
@@ -76,8 +76,8 @@
   .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
   .flex-wrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .w-full { width: 100%; }
-  .text-sm { font-size: 14px; }
-  .text-xs { font-size: 12px; }
+  .text-sm { font-size: 16px; }
+  .text-xs { font-size: 14px; }
   .text-center { text-align: center; }
   .text-slate { color: #94a3b8; }
   .mt-2 { margin-top: 8px; }
@@ -107,7 +107,7 @@
   .str-circle {
     width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
     display: flex; align-items: center; justify-content: center;
-    font-size: 40px; font-weight: 900; color: white; margin: 16px auto;
+    font-size: 48px; font-weight: 900; color: white; margin: 16px auto;
   }
   .str-legendary { border-color: rgba(251,191,36,0.6); box-shadow: 0 0 30px rgba(251,191,36,0.25); background: rgba(251,191,36,0.1); }
   .str-epic { border-color: rgba(168,85,247,0.6); box-shadow: 0 0 30px rgba(168,85,247,0.25); background: rgba(168,85,247,0.1); }
@@ -121,19 +121,19 @@
   .name-common { color: #94a3b8; }
   .war-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; text-align: center; font-weight: 600; color: #fecdd3; animation: pulse-glow 1.2s ease-in-out infinite; }
   @keyframes pulse-glow { 0%,100%{opacity:1} 50%{opacity:0.7} }
-  .win-text { font-size: 24px; font-weight: 800; color: #fde68a; animation: winGlow 1.5s ease-in-out infinite; }
+  .win-text { font-size: 30px; font-weight: 800; color: #fde68a; animation: winGlow 1.5s ease-in-out infinite; }
   @keyframes winGlow { 0%,100%{text-shadow:0 0 20px rgba(251,191,36,0.4)} 50%{text-shadow:0 0 40px rgba(251,191,36,0.8)} }
-  .result-win { color: #6ee7b7; font-weight: 700; font-size: 16px; }
-  .result-lose { color: #fda4af; font-weight: 700; font-size: 16px; }
-  .result-tie { color: #fde68a; font-weight: 700; font-size: 16px; }
+  .result-win { color: #6ee7b7; font-weight: 700; font-size: 20px; }
+  .result-lose { color: #fda4af; font-weight: 700; font-size: 20px; }
+  .result-tie { color: #fde68a; font-weight: 700; font-size: 20px; }
   @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
   .slide-up { animation: slideUp 0.35s ease-out; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
   .war-facedown { display: flex; justify-content: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; }
   .war-facedown img { height: 100px; width: 70px; object-fit: contain; border-radius: 10px; background: #000; }
-  .war-facedown-label { text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
-  .owner-label { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
+  .war-facedown-label { text-align: center; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
+  .owner-label { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 10px; text-align: center; font-size: 16px; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
   .collection-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 16px; transition: all 0.2s; }
   .collection-card.in-deck-legendary { box-shadow: 0 0 30px rgba(251,191,36,0.25); border-color: rgba(251,191,36,0.4); }
   .collection-card.in-deck-epic { box-shadow: 0 0 25px rgba(168,85,247,0.22); border-color: rgba(168,85,247,0.4); }
@@ -145,14 +145,14 @@
   .rarity-cap-box { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 10px; text-align: center; }
   .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
   .wallet-area { display: flex; align-items: center; gap: 10px; }
-  .error-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; font-size: 14px; color: #fecdd3; margin-bottom: 16px; }
-  .loading-banner { background: rgba(99,102,241,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 16px; padding: 12px 16px; font-size: 14px; color: #c7d2fe; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .error-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; font-size: 16px; color: #fecdd3; margin-bottom: 16px; }
+  .loading-banner { background: rgba(99,102,241,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 16px; padding: 12px 16px; font-size: 16px; color: #c7d2fe; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
   @media (max-width: 640px) {
     .grid-2 { grid-template-columns: 1fr; }
     .grid-5 { grid-template-columns: repeat(3, 1fr); }
     h1 { font-size: 1.5rem; }
     .flip-inner { height: 320px; }
-    .str-circle { width: 80px; height: 80px; font-size: 32px; }
+    .str-circle { width: 90px; height: 90px; font-size: 38px; }
     .wallet-area { flex-wrap: wrap; }
   }
 </style>
@@ -367,15 +367,15 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false}){
               </div>
               {/* Right: name, rarity, strength, power */}
               <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:10,minWidth:0}}>
-                <div className={`name-${r}`} style={{fontSize:20,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
+                <div className={`name-${r}`} style={{fontSize:24,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                   <span className={`badge badge-${r}`}>{titleCase(r)}</span>
                 </div>
-                <div className={`str-circle str-${r}`} style={{width:70,height:70,fontSize:28,margin:0}}>{displayStr}</div>
-                <div style={{fontSize:11,color:"#94a3b8"}}>STR: {displayStr}{buffed?` (${baseStr}+1)`:""}</div>
-                {buffed&&powerName&&<div style={{fontSize:12,padding:"6px 10px",borderRadius:8,background:"rgba(74,222,128,0.15)",border:"1px solid rgba(74,222,128,0.4)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:11,opacity:0.9}}>Power activated! +1 STR</span></div>}
-                {!buffed&&powerName&&<div style={{fontSize:11,color:"#64748b"}}>{powerName}</div>}
-                <div style={{fontSize:10,color:"#64748b"}}>#{card.templateId}</div>
+                <div className={`str-circle str-${r}`} style={{width:80,height:80,fontSize:34,margin:0}}>{displayStr}</div>
+                <div style={{fontSize:14,color:"#94a3b8"}}>STR: {displayStr}{buffed?` (${baseStr}+1)`:""}</div>
+                {buffed&&powerName&&<div style={{fontSize:16,padding:"8px 12px",borderRadius:10,background:"rgba(74,222,128,0.15)",border:"2px solid rgba(74,222,128,0.5)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:14,opacity:0.9}}>Power activated! +1 STR</span></div>}
+                {!buffed&&powerName&&<div style={{fontSize:13,color:"#64748b"}}>{powerName}</div>}
+                <div style={{fontSize:12,color:"#64748b"}}>#{card.templateId}</div>
               </div>
             </div>):(<img className="card-back" src={CARD_BACK} alt="back"/>)}
           </div>
@@ -592,13 +592,6 @@ function App(){
 
       {/* ═══════════ BATTLE TAB ═══════════ */}
       {tab==="battle"&&<div className="space">
-        <div className="ui-card">
-          <div className="ui-card-title">Choose Opponent</div>
-          <div className="flex-wrap">
-            {OPPONENTS.map(o=><button key={o.id} className={`btn btn-outline ${o.id===oppId?"active-btn":""}`} onClick={()=>setOppId(o.id)}>{o.name}</button>)}
-          </div>
-          <div className="text-sm text-slate mt-2">Facing: {opp.name} — {opp.description}</div>
-        </div>
         <div className="ui-card" style={{textAlign:"center"}}>
           <div className="flex-wrap" style={{justifyContent:"center",marginBottom:16}}>
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
@@ -606,7 +599,7 @@ function App(){
           </div>
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:12}}>Go to Collection & Deck to build your deck first.</div>}
           {game&&<div style={{marginBottom:12}}>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#94a3b8",marginBottom:4}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:15,color:"#94a3b8",marginBottom:4}}>
               <span>You: {pLeft}</span><span>Round {game.round}</span><span>Opp: {oLeft}</span>
             </div>
             <div className="score-track"><div className="score-fill" style={{width:pPct+"%"}}/></div>
@@ -629,18 +622,19 @@ function App(){
             <button className="btn btn-primary" onClick={()=>setDeck(buildDeck(ownedCards))}>Build Deck</button>
             <span className="text-sm text-slate">One click to build the largest legal deck.</span>
           </div>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:14,color:"#94a3b8",marginBottom:6}}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:16,color:"#94a3b8",marginBottom:6}}>
             <span>{deck.length}/{DECK_SIZE} cards</span><span>{fill}%</span>
           </div>
           <div className="progress-track"><div className="progress-fill" style={{width:fill+"%"}}/></div>
           <div className="grid-5 mt-3">
-            {Object.keys(RARITY_CAPS).map(r=><div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:11}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div></div>)}
+            {Object.keys(RARITY_CAPS).map(r=><div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:13}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div></div>)}
           </div>
         </div>
         <div className="ui-card" style={{marginBottom:16}}>
           <div className="ui-card-title">Hero Checklist ({deck.length}/{DECK_SIZE})</div>
           {(()=>{
             const deckHeroes=new Set(deck.map(c=>getHeroKey(c)));
+            const ownedHeroes=new Set(ownedCards.map(c=>getHeroKey(c)));
             // Build merged hero list: use actual card names where available, fill gaps from master list
             const seen=new Map(); // normalizedKey -> display name
             ownedCards.forEach(c=>{ const k=getHeroKey(c); if(!seen.has(k)) seen.set(k, c.name); });
@@ -650,15 +644,21 @@ function App(){
             const colArrays=[];
             for(let col=0;col<cols;col++) colArrays.push(heroList.slice(col*rows,(col+1)*rows));
             return(
-              <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,fontSize:12}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,fontSize:14}}>
                 {colArrays.map((col,ci)=>
                   <div key={ci} style={{display:"flex",flexDirection:"column",gap:2}}>
                     {col.map(([key,name])=>{
                       const inDeck=deckHeroes.has(key);
+                      const owned=ownedHeroes.has(key);
+                      const marketUrl="https://heroes.atomichub.io/market?blockchain=wax-mainnet&collection_name=officialhero&order=asc&primary_chain=wax-mainnet&schema_name=series1&sort=price&symbol=WAX&search="+encodeURIComponent(name);
                       return(
                         <div key={key} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",color:inDeck?"#4ade80":"#ef4444"}}>
-                          <span style={{fontSize:13,lineHeight:1}}>{inDeck?"✓":"✗"}</span>
-                          <span style={{color:inDeck?"#e2e8f0":"#64748b",fontSize:11}}>{name}</span>
+                          <span style={{fontSize:15,lineHeight:1}}>{inDeck?"✓":"✗"}</span>
+                          {!owned?(
+                            <a href={marketUrl} target="_blank" rel="noopener noreferrer" style={{color:"#ef4444",fontSize:13,textDecoration:"underline",textDecorationStyle:"dotted",opacity:0.8}}>{name}</a>
+                          ):(
+                            <span style={{color:inDeck?"#e2e8f0":"#64748b",fontSize:13}}>{name}</span>
+                          )}
                         </div>
                       );
                     })}
@@ -684,9 +684,9 @@ function App(){
                     <img src={buildImageUrl(heroImg)} alt={variants[0].name} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
                   </div>}
                   <div style={{flex:1}}>
-                    <div style={{fontSize:18,fontWeight:700,marginBottom:8,color:selectedVariant?undefined:"#94a3b8"}}>
+                    <div style={{fontSize:20,fontWeight:700,marginBottom:8,color:selectedVariant?undefined:"#94a3b8"}}>
                       {variants[0].name}
-                      {selectedVariant&&<span className={`badge badge-${selectedVariant.rarity}`} style={{marginLeft:8,fontSize:11}}>{titleCase(selectedVariant.rarity)} selected</span>}
+                      {selectedVariant&&<span className={`badge badge-${selectedVariant.rarity}`} style={{marginLeft:8,fontSize:13}}>{titleCase(selectedVariant.rarity)} selected</span>}
                     </div>
                     <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                       {variants.map(card=>{
@@ -705,9 +705,9 @@ function App(){
                             onClick={()=>toggleCard(card)}
                             disabled={!inDeck&&!ok}
                           >
-                            <span className={`badge badge-${card.rarity}`} style={{fontSize:10}}>{titleCase(card.rarity)}</span>
-                            <span style={{fontSize:12,color:"#e2e8f0"}}>STR: {getCardStrength(card)}</span>
-                            <span style={{fontSize:11,color:inDeck?"#fde68a":"#64748b"}}>{inDeck?"✓":""}</span>
+                            <span className={`badge badge-${card.rarity}`} style={{fontSize:12}}>{titleCase(card.rarity)}</span>
+                            <span style={{fontSize:14,color:"#e2e8f0"}}>STR: {getCardStrength(card)}</span>
+                            <span style={{fontSize:13,color:inDeck?"#fde68a":"#64748b"}}>{inDeck?"✓":""}</span>
                           </button>
                         );
                       })}
@@ -735,7 +735,7 @@ function App(){
                   {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
                     <img src={buildImageUrl(card.img)} alt={card.name} style={{width:"100%",height:100,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
                   </div>}
-                  <div className={`name-${card.rarity}`} style={{fontSize:18,fontWeight:700}}>{card.name}</div>
+                  <div className={`name-${card.rarity}`} style={{fontSize:20,fontWeight:700}}>{card.name}</div>
                   <div className="flex-wrap mt-2 gap-2">
                     <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
                     <span className="badge badge-outline">STR: {getCardStrength(card)}</span>
