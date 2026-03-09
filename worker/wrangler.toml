@@ -1,0 +1,4 @@
+name = "heroes-war-mint"
+main = "src/index.js"
+compatibility_date = "2025-04-08"
+compatibility_flags = ["nodejs_compat"]

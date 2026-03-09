@@ -173,6 +173,8 @@ const WAX_CONFIG = {
   ipfsGateway: "https://ipfs.io/ipfs/",
   rpcEndpoint: "https://wax.greymass.com",
 };
+const MINT_API = "https://heroes-war-mint.joelcomm.workers.dev";
+const MINT_SECRET = "heroes2026mint";
 const CARD_BACK = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/QmZ91Zj5PZUnL2F8X9Hg2QXPP3UMbqaDqrRCyMrq6zchRN";
 const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
@@ -435,6 +437,8 @@ function App(){
   const [deck,setDeck]=useState([]);
   const [oppId,setOppId]=useState("collector");
   const [game,setGame]=useState(null);
+  const [badgeNotif,setBadgeNotif]=useState(null);
+  const [matchesPlayed,setMatchesPlayed]=useState(0);
 
   // Wallet state
   const [demoMode,setDemoMode]=useState(false);
@@ -650,6 +654,35 @@ function App(){
     })();
   },[]);
 
+  // --- Badge Minting ---
+  async function mintBadge(badgeId){
+    if(!walletAccount || demoMode) return; // only for logged-in wallet players
+    try {
+      const resp = await fetch(MINT_API+"/mint", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ player:walletAccount, badge_id:badgeId, api_secret:MINT_SECRET }),
+      });
+      const data = await resp.json();
+      if(data.success){
+        setBadgeNotif("🏆 Badge earned: "+data.badge+"!");
+        setTimeout(()=>setBadgeNotif(null), 8000);
+      } else if(data.already_owned){
+        // Player already has this badge, no notification needed
+      } else {
+        console.error("Badge mint error:", data.error);
+      }
+    } catch(e){ console.error("Badge mint failed:", e); }
+  }
+
+  // Track game completion for achievements
+  useEffect(()=>{
+    if(!game?.winner) return;
+    setMatchesPlayed(n=>n+1);
+    // First match badge
+    mintBadge("first_match");
+  },[game?.winner]);
+
   const opp=OPPONENTS.find(o=>o.id===oppId)||OPPONENTS[0];
   const dc=countByRarity(deck);
   const fill=Math.min(100,Math.round(deck.length/DECK_SIZE*100));
@@ -725,6 +758,7 @@ function App(){
         </details>
       </div>
 
+      {badgeNotif && <div style={{background:"rgba(74,222,128,0.12)",border:"1px solid rgba(74,222,128,0.4)",borderRadius:16,padding:"14px 20px",fontSize:22,color:"#4ade80",marginBottom:16,textAlign:"center",fontWeight:700}}>{badgeNotif}</div>}
       {error && <div className="error-banner">{error}</div>}
       {inventoryLoading && <div className="loading-banner"><span className="spinner"></span> Loading {walletAccount}'s inventory from AtomicAssets...</div>}
 
