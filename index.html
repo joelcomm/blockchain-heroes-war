@@ -175,23 +175,32 @@ const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
 const DECK_SIZE = 50;
 
-const HERO_POWERS = {
-  "1001":{ name:"Whitepaper Surge", label:"+1 Strength", bonus:1, flavor:"This hero bends the round with first-mover energy." },
-  "1002":{ name:"Gas Warp", label:"+1 Strength", bonus:1, flavor:"A burst of chain magic gives this hero an edge." },
-  "1006":{ name:"Legend Pulse", label:"+2 Strength", bonus:2, flavor:"A rare pulse of dominance turns the matchup." },
+/* ═══════════ HERO POWER NAMES ═══════════ */
+const HERO_POWER_NAMES = {
+  "genesis":"The Unleashing","metalik":"Immutable Body","litespeed":"Faster Than Light",
+  "coin commando":"Demolition Charge","coincommando":"Demolition Charge","trilogy":"Construct",
+  "magic man":"The Vanishing Act","master control":"Smart Disc","stampede":"Chaotic Charge",
+  "brightstroke":"Living Color Shield","mr wick":"Burn It Down","mr. wick":"Burn It Down",
+  "cypherfunk":"Crypto Breach","felonious":"Jailbreak","the oracle":"Third Eye",
+  "super stomp":"Immutable Temple","x-change":"Identity Theft","great gecko":"Wall Crawler",
+  "courage":"Fearless Flight","renegade":"Ghost Protocol","lady lightning":"Chain Lightning",
+  "silver scientist":"Data Transmutation","wyld wrangler":"Lasso Lock","the emissary":"Rally The People",
+  "data avenger":"P.O.G. Strike","the wizard":"Cybermagic Script","overseer":"Mission Support",
+  "forecaster":"Storm Front","professor axiom":"Emergent Proof","maximum":"Unstoppable Force",
+  "the chairman":"Energy Shield","the senator":"Filibuster","mz stability":"Immovable Object",
+  "dynamic defiant":"Telekinetic Surge","bitcoin bro":"Smoke Screen",
+  "soothe 'n sayer":"Dual Commentary","sooth n sayer":"Dual Commentary","soothe n sayer":"Dual Commentary",
+  "gingergirl":"Power Glove Punch","jester":"Wild Card","the creatrix":"Manifest",
+  "scrivener":"Rewrite Reality","rowdy rook":"Aerial Dive","rocketman":"Turbine Boost",
+  "the prophet":"Convert","rock fierce":"Boulder Toss","the crusader":"Immutable Armory",
+  "supernova":"Nuclear Reaction","ethermage":"Uncounterable Spell","repeat":"Double Play",
+  "executive powers":"Hostile Takeover","everlasting":"Time Warp","captain crypto":"Sonic Boom",
+  "megamine":"Deep Drill",
 };
-const HERO_NAME_POWERS = {
-  satoshi:{ name:"Genesis Edge", label:"+2 Strength", bonus:2, flavor:"The originator carries unmatched first-strike gravity." },
-  vitalik:{ name:"Gas Warp", label:"+1 Strength", bonus:1, flavor:"A burst of chain magic gives this hero an edge." },
-  cz:{ name:"Liquidity Rush", label:"+1 Strength", bonus:1, flavor:"Momentum floods in when the pressure is highest." },
-  andreas:{ name:"Signal Boost", label:"+1 Strength", bonus:1, flavor:"Clarity and conviction tilt the round." },
-  hal:{ name:"Legend Pulse", label:"+2 Strength", bonus:2, flavor:"A rare pulse of dominance turns the matchup." },
-  brock:{ name:"Breaker Mode", label:"+1 Strength", bonus:1, flavor:"When the flip starts, this hero hits harder than expected." },
-  laura:{ name:"Precision Strike", label:"+1 Strength", bonus:1, flavor:"Fine margins become winning margins." },
-  lyn:{ name:"Steady Climb", label:"+1 Strength", bonus:1, flavor:"Quiet consistency becomes late-round leverage." },
-  charlie:{ name:"Scrappy Upset", label:"+1 Strength", bonus:1, flavor:"An underdog burst can flip the entire pile." },
-  "super stomp":{ name:"Ground Smash", label:"+1 Strength", bonus:1, flavor:"A blunt-force blow shakes the whole matchup." },
-};
+/* Buff chance by rarity: chance to gain +1 strength (match next tier up) */
+const BUFF_CHANCE = { legendary:0, epic:0.4, rare:0.2, uncommon:0.1, common:0 };
+function getHeroPowerName(card){ return HERO_POWER_NAMES[normalizeHeroName(card?.name)] || null; }
+function rollBuff(card){ const chance=BUFF_CHANCE[card?.rarity]||0; if(chance<=0)return false; return Math.random()<chance; }
 const ALL_HEROES = [
   "Bitcoin Bro","Brightstroke","Captain Crypto","Coin Commando","Courage",
   "CypherFunk","Data Avenger","Dynamic Defiant","Ethermage","Everlasting",
@@ -214,8 +223,7 @@ const OPPONENTS = [
 /* ═══════════ HELPERS ═══════════ */
 function normalizeHeroName(n){ return (n||"").trim().toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," "); }
 function getHeroKey(c){ return normalizeHeroName(c.name); }
-function getHeroPower(c){ if(!c)return null; return HERO_POWERS[String(c.templateId)] || HERO_NAME_POWERS[String(c.name||"").trim().toLowerCase()] || null; }
-function getCardStrength(c){ return RARITY_ORDER[c.rarity]+(getHeroPower(c)?.bonus||0); }
+function getCardStrength(c){ return RARITY_ORDER[c?.rarity]||0; }
 function titleCase(v){ return v.charAt(0).toUpperCase()+v.slice(1); }
 function shuffleArray(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
 function countByRarity(d){ const c={legendary:0,epic:0,rare:0,uncommon:0,common:0}; d.forEach(x=>c[x.rarity]++); return c; }
@@ -317,10 +325,12 @@ function prepareRound(g){
   if(g.winner)return g;
   if(g.tp.length===0){
     if(!g.pp[0]||!g.op[0])return{...g,winner:!g.pp[0]&&!g.op[0]?"tie":g.pp[0]?"player":"opponent"};
-    return{...g,cur:{p:g.pp[0],o:g.op[0]},reveal:true,wfp:[],wfo:[]};
+    const pBuff=rollBuff(g.pp[0]), oBuff=rollBuff(g.op[0]);
+    return{...g,cur:{p:g.pp[0],o:g.op[0]},pBuff,oBuff,reveal:true,wfp:[],wfo:[]};
   }
   if(g.pp.length<3||g.op.length<3)return{...g,winner:g.pp.length===g.op.length?"tie":g.pp.length>g.op.length?"player":"opponent"};
-  return{...g,cur:{p:g.pp[2],o:g.op[2]},reveal:true,wfp:g.pp.slice(0,2),wfo:g.op.slice(0,2)};
+  const pBuff=rollBuff(g.pp[2]), oBuff=rollBuff(g.op[2]);
+  return{...g,cur:{p:g.pp[2],o:g.op[2]},pBuff,oBuff,reveal:true,wfp:g.pp.slice(0,2),wfo:g.op.slice(0,2)};
 }
 function resolveRound(g){
   if(!g.cur||g.winner)return g;
@@ -329,7 +339,7 @@ function resolveRound(g){
   const coCards=inWar?[...g.wfo,g.cur.o]:[g.cur.o];
   const npp=g.pp.slice(consumed), nop=g.op.slice(consumed);
   const pile=[...g.tp,...cpCards,...coCards];
-  const ps=getCardStrength(g.cur.p), os=getCardStrength(g.cur.o);
+  const ps=getCardStrength(g.cur.p)+(g.pBuff?1:0), os=getCardStrength(g.cur.o)+(g.oBuff?1:0);
   let fp=npp, fo=nop, nt=[];
   if(ps>os)fp=[...npp,...pile]; else if(os>ps)fo=[...nop,...pile]; else nt=pile;
   let w=null; if(!fp.length&&!fo.length)w="tie"; else if(!fp.length)w="opponent"; else if(!fo.length)w="player";
@@ -337,8 +347,11 @@ function resolveRound(g){
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
-function FlipCard({card,facedown,label,warFD=[]}){
+function FlipCard({card,facedown,label,warFD=[],buffed=false}){
   const r=card?.rarity||"common";
+  const baseStr=getCardStrength(card);
+  const displayStr=buffed?baseStr+1:baseStr;
+  const powerName=card?getHeroPowerName(card):null;
   return(
     <div className="slide-up">
       {label&&<div className="owner-label">{label}</div>}
@@ -358,9 +371,10 @@ function FlipCard({card,facedown,label,warFD=[]}){
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                   <span className={`badge badge-${r}`}>{titleCase(r)}</span>
                 </div>
-                <div className={`str-circle str-${r}`} style={{width:70,height:70,fontSize:28,margin:0}}>{getCardStrength(card)}</div>
-                <div style={{fontSize:11,color:"#94a3b8"}}>STR: {getCardStrength(card)}</div>
-                {getHeroPower(card)&&<div style={{fontSize:11,padding:"4px 8px",borderRadius:8,background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.3)",color:"#fde68a"}}>{getHeroPower(card).name}<br/><span style={{opacity:0.8}}>{getHeroPower(card).label}</span></div>}
+                <div className={`str-circle str-${r}`} style={{width:70,height:70,fontSize:28,margin:0}}>{displayStr}</div>
+                <div style={{fontSize:11,color:"#94a3b8"}}>STR: {displayStr}{buffed?` (${baseStr}+1)`:""}</div>
+                {buffed&&powerName&&<div style={{fontSize:12,padding:"6px 10px",borderRadius:8,background:"rgba(74,222,128,0.15)",border:"1px solid rgba(74,222,128,0.4)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:11,opacity:0.9}}>Power activated! +1 STR</span></div>}
+                {!buffed&&powerName&&<div style={{fontSize:11,color:"#64748b"}}>{powerName}</div>}
                 <div style={{fontSize:10,color:"#64748b"}}>#{card.templateId}</div>
               </div>
             </div>):(<img className="card-back" src={CARD_BACK} alt="back"/>)}
@@ -526,7 +540,7 @@ function App(){
   const total=pLeft+oLeft+(game?.tp?.length||0);
   const pPct=total>0?Math.round(pLeft/total*100):50;
 
-  const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards,opp.strategy))); };
+  const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards))); };
   const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
   const toggleCard=(card)=>{
     setDeck(cur=>{
@@ -537,7 +551,7 @@ function App(){
   };
 
   const roundResult=game&&game.cur&&!game.reveal?(()=>{
-    const ps=getCardStrength(game.cur.p),os=getCardStrength(game.cur.o);
+    const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0),os=getCardStrength(game.cur.o)+(game.oBuff?1:0);
     if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os})</div>;
     if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins this round! ({ps} vs {os})</div>;
     return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os})</div>;
@@ -602,8 +616,8 @@ function App(){
           {game?.winner&&<div className="win-text" style={{marginTop:8}}>{game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}</div>}
         </div>
         <div className="grid-2">
-          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":"Your card"} warFD={game?.reveal?game?.wfp||[]:[]}/>
-          <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]}/>
+          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":"Your card"} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff}/>
+          <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff}/>
         </div>
       </div>}
 
@@ -714,8 +728,8 @@ function App(){
           <div className="text-sm text-slate mb-4">Shows which heroes have powers and whether the power came from a template match or name-based fallback.</div>
           <div className="grid-3">
             {ownedCards.map(card=>{
-              const power=getHeroPower(card);
-              const source=HERO_POWERS[String(card.templateId)]?"template":HERO_NAME_POWERS[card.name.trim().toLowerCase()]?"name":"none";
+              const powerName=getHeroPowerName(card);
+              const chance=BUFF_CHANCE[card.rarity]||0;
               return(
                 <div key={card.id} className="collection-card">
                   {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
@@ -724,10 +738,9 @@ function App(){
                   <div className={`name-${card.rarity}`} style={{fontSize:18,fontWeight:700}}>{card.name}</div>
                   <div className="flex-wrap mt-2 gap-2">
                     <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
-                    <span className="badge badge-outline">#{card.templateId}</span>
-                    <span className="badge badge-outline">Source: {source}</span>
+                    <span className="badge badge-outline">STR: {getCardStrength(card)}</span>
                   </div>
-                  {power?(<div className="power-box mt-3"><div style={{fontWeight:600}}>{power.name}</div><div className="text-xs mt-2">{power.label}</div><div className="text-xs mt-2" style={{opacity:0.8,fontStyle:"italic"}}>{power.flavor}</div></div>)
+                  {powerName?(<div className="power-box mt-3"><div style={{fontWeight:600}}>{powerName}</div><div className="text-xs mt-2">{chance>0?`${Math.round(chance*100)}% chance for +1 STR`:"No buff effect"}</div></div>)
                   :(<div className="no-power-box mt-3 text-sm">No power assigned.</div>)}
                 </div>
               );
