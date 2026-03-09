@@ -343,7 +343,10 @@ function buildDeck(pool){
   return [...picks.values()];
 }
 const MAX_CHARGES = 5;
-function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:MAX_CHARGES, pManualBuff:false, oCharges:MAX_CHARGES, oManualBuff:false, pPeeks:MAX_CHARGES, pPeeking:false }; }
+const MAX_DOUBLES = 3;
+const MAX_SHIELDS = 3;
+const COUNTER_STRIKE_CHANCE = 0.20; // 20% chance NPC auto-counters player boost
+function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:MAX_CHARGES, pManualBuff:false, oCharges:MAX_CHARGES, oManualBuff:false, oCounterStrike:false, pPeeks:MAX_CHARGES, pPeeking:false, pDoubleDown:false, pDoubles:MAX_DOUBLES, lastDoubleDown:false, oShields:MAX_SHIELDS, oShieldUsed:false }; }
 function npcDecideBuff(g,pCard,oCard){
   if(g.oCharges<=0)return false;
   const ps=getCardStrength(pCard)+(g.pManualBuff?1:0);
@@ -353,18 +356,45 @@ function npcDecideBuff(g,pCard,oCard){
   if(os===ps)return true;
   return false;
 }
+// Counter-Strike: 20% chance NPC auto-counters when player uses Trigger Power
+function npcCounterStrike(g){
+  if(!g.pManualBuff)return false; // only triggers when player boosted
+  if(g.oCharges<=0)return false; // needs charges
+  return Math.random()<COUNTER_STRIKE_CHANCE;
+}
+// Shield: NPC strategically blocks a loss (saves it for big piles / critical moments)
+function npcDecideShield(g,ps,os,pile){
+  if(g.oShields<=0)return false;
+  if(os>=ps)return false; // don't waste shield when not losing
+  // Strategic: use shield when pile is large (lots of points at stake)
+  if(pile.length>=6)return true;
+  // Use shield when losing badly on score and this loss would make it worse
+  if(g.oPts<g.pPts&&pile.length>=4)return true;
+  // Late game: protect when close score and losing
+  if(g.round>=40&&g.oPts<=g.pPts+10)return true;
+  // Save shields otherwise
+  return false;
+}
 function prepareRound(g){
   if(g.winner)return g;
   if(g.tp.length===0){
     if(!g.pp[0]||!g.op[0])return{...g,winner:!g.pp[0]&&!g.op[0]?"tie":g.pp[0]?"player":"opponent"};
     const pBuff=rollBuff(g.pp[0]), oBuff=rollBuff(g.op[0]);
     const oBst=npcDecideBuff(g,g.pp[0],g.op[0]);
-    return{...g,cur:{p:g.pp[0],o:g.op[0]},pBuff,oBuff,oManualBuff:oBst,oCharges:g.oCharges-(oBst?1:0),reveal:true,wfp:[],wfo:[],pPeeking:false};
+    // Counter-Strike: if player boosted, NPC may auto-counter
+    const counter=npcCounterStrike(g);
+    const totalOBst=oBst||counter;
+    // Charge cost: only 1 charge even if both buff+counter would apply
+    const chargeCost=totalOBst?1:0;
+    return{...g,cur:{p:g.pp[0],o:g.op[0]},pBuff,oBuff,oManualBuff:totalOBst,oCounterStrike:counter&&!oBst,oCharges:g.oCharges-chargeCost,reveal:true,wfp:[],wfo:[],pPeeking:false,oShieldUsed:false,lastDoubleDown:false};
   }
   if(g.pp.length<3||g.op.length<3)return{...g,winner:g.pp.length===g.op.length?"tie":g.pp.length>g.op.length?"player":"opponent"};
   const pBuff=rollBuff(g.pp[2]), oBuff=rollBuff(g.op[2]);
   const oBst=npcDecideBuff(g,g.pp[2],g.op[2]);
-  return{...g,cur:{p:g.pp[2],o:g.op[2]},pBuff,oBuff,oManualBuff:oBst,oCharges:g.oCharges-(oBst?1:0),reveal:true,wfp:g.pp.slice(0,2),wfo:g.op.slice(0,2),pPeeking:false};
+  const counter=npcCounterStrike(g);
+  const totalOBst=oBst||counter;
+  const chargeCost=totalOBst?1:0;
+  return{...g,cur:{p:g.pp[2],o:g.op[2]},pBuff,oBuff,oManualBuff:totalOBst,oCounterStrike:counter&&!oBst,oCharges:g.oCharges-chargeCost,reveal:true,wfp:g.pp.slice(0,2),wfo:g.op.slice(0,2),pPeeking:false,oShieldUsed:false,lastDoubleDown:false};
 }
 function resolveRound(g){
   if(!g.cur||g.winner)return g;
@@ -376,21 +406,29 @@ function resolveRound(g){
   const ps=getCardStrength(g.cur.p)+(g.pBuff?1:0)+(g.pManualBuff?1:0), os=getCardStrength(g.cur.o)+(g.oBuff?1:0)+(g.oManualBuff?1:0);
   let fp=npp, fo=nop, nt=[];
   let pPts=g.pPts, oPts=g.oPts, lp=0;
-  const rd=g.round+1;
-  if(ps>os){ fp=[...npp,...pile]; pPts+=pile.length; lp=pile.length; }
-  else if(os>ps){ fo=[...nop,...pile]; oPts+=pile.length; lp=pile.length; }
-  else if(rd>=MAX_ROUNDS){ nt=[]; }
-  else nt=pile;
+  // Only count as a new round if NOT resolving a WAR (WAR continues the same round)
+  const rd=inWar?g.round:g.round+1;
+  // Double Down multiplier (applies to whoever wins this round's points)
+  const ddMult=g.pDoubleDown?2:1;
+  // NPC Shield: strategically block a loss
+  const shieldUsed=ps>os&&npcDecideShield(g,ps,os,pile);
+  if(shieldUsed){
+    // Shield blocks: cards go back to respective decks (no points awarded), pile is split
+    fp=npp; fo=nop; nt=[];
+    lp=0;
+  } else if(ps>os){ fp=[...npp,...pile]; pPts+=pile.length*ddMult; lp=pile.length*ddMult; }
+  else if(os>ps){ fo=[...nop,...pile]; oPts+=pile.length*ddMult; lp=pile.length*ddMult; }
+  else nt=pile; // Tie = WAR, always let it play out (even at round 50)
   let w=null;
   if(!fp.length&&!fo.length)w="tie";
   else if(!fp.length)w="opponent";
   else if(!fo.length)w="player";
-  else if(rd>=MAX_ROUNDS)w=pPts>oPts?"player":oPts>pPts?"opponent":"tie";
-  return{pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges:g.pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,pPeeks:g.pPeeks,pPeeking:false};
+  else if(rd>=MAX_ROUNDS&&nt.length===0)w=pPts>oPts?"player":oPts>pPts?"opponent":"tie";
+  return{pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges:g.pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks:g.pPeeks,pPeeking:false,pDoubleDown:false,pDoubles:g.pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed};
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
-function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false}){
+function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,counterStrike=false}){
   const r=card?.rarity||"common";
   const baseStr=getCardStrength(card);
   const totalBuff=(buffed?1:0)+(manualBuff?1:0);
@@ -422,7 +460,8 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false}){
                 <div className={`str-circle str-${r}`} style={{width:80,height:80,fontSize:36,margin:0}}>{displayStr}</div>
                 <div style={{fontSize:18,color:"#94a3b8"}}>STR: {displayStr}{totalBuff>0?` (${baseStr}+${totalBuff})`:""}</div>
                 {buffed&&powerName&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(74,222,128,0.15)",border:"2px solid rgba(74,222,128,0.5)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Power activated! +1 STR</span></div>}
-                {manualBuff&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(99,102,241,0.15)",border:"2px solid rgba(129,140,248,0.5)",color:"#a5b4fc",fontWeight:700}}>Trigger Power!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Manual boost! +1 STR</span></div>}
+                {manualBuff&&!counterStrike&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(99,102,241,0.15)",border:"2px solid rgba(129,140,248,0.5)",color:"#a5b4fc",fontWeight:700}}>Trigger Power!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Manual boost! +1 STR</span></div>}
+                {counterStrike&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(239,68,68,0.15)",border:"2px solid rgba(239,68,68,0.5)",color:"#f87171",fontWeight:700}}>⚡ Counter-Strike!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Countered your boost! +1 STR</span></div>}
                 {!buffed&&!manualBuff&&powerName&&<div style={{fontSize:16,color:"#64748b"}}>{powerName}</div>}
                 <div style={{fontSize:14,color:"#64748b"}}>#{card.templateId}</div>
               </div>
@@ -782,6 +821,7 @@ function App(){
   const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
   const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
+  const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
   const toggleCard=(card)=>{
     setDeck(cur=>{
       if(cur.some(c=>c.id===card.id))return cur.filter(c=>c.id!==card.id);
@@ -793,9 +833,15 @@ function App(){
   const roundResult=game&&game.cur&&!game.reveal?(()=>{
     const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0),os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
     const lp=game.lastPtsWon||0;
-    if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts</div>;
-    if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins! ({ps} vs {os}) +{lp} pts</div>;
-    return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os})</div>;
+    const extras=[];
+    if(game.oCounterStrike)extras.push("⚡ Counter-Strike!");
+    if(game.oShieldUsed)extras.push("🛡️ Shield blocked!");
+    if(lp>0&&game.lastDoubleDown)extras.push("🎲 Double Down!");
+    const extraLine=extras.length>0?<div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginTop:4}}>{extras.join(" ")}</div>:null;
+    if(game.oShieldUsed)return<div className="result-lose text-center slide-up">🛡️ Opponent's Shield blocked your win! ({ps} vs {os}) No points awarded{extraLine}</div>;
+    if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
+    if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
+    return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os}){extraLine}</div>;
   })():null;
 
   return(
@@ -867,7 +913,7 @@ function App(){
             <li>Connect your WAX Cloud Wallet or Anchor Wallet.</li>
             <li>Load your Series 1 Blockchain Heroes.<br/><span style={{fontSize:16,color:"#94a3b8"}}>Don't have Blockchain Heroes cards? Try the demo by clicking the checkbox on top.</span></li>
             <li>Choose your heroes or click <strong>BUILD</strong> to fill your slots.</li>
-            <li>Use your special abilities strategically to win.</li>
+            <li>Use your abilities: <strong>Trigger Power</strong> (+1 STR), <strong>Peek</strong> (see opponent's card), and <strong>Double Down</strong> (2x points). Watch out for the opponent's <strong>Counter-Strike</strong> and <strong>Shield</strong>!</li>
             <li>Missing a hero? Click the <span style={{color:"#f87171"}}>red link</span> to find one on Atomic Marketplace.</li>
           </ol>
         </details>
@@ -897,29 +943,54 @@ function App(){
             </div>
             <div className="score-track"><div className="score-fill" style={{width:pPct+"%"}}/></div>
           </div>}
-          {game&&!game.winner&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:12}}>
+          {game&&!game.winner&&<>
+          <div style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:6,textTransform:"uppercase",letterSpacing:2}}>Your Abilities</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:12}}>
             <div style={{padding:16,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(129,140,248,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#a5b4fc",marginBottom:8}}>Trigger Power</div>
+              <div style={{fontSize:20,fontWeight:700,color:"#a5b4fc",marginBottom:8}}>⚡ Trigger Power</div>
               <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pManualBuff?"Activated!":game.pCharges>0?"Boost +1 STR":"No charges"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pCharges?"\u2705":"\u274C"}</span>)}
+                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pCharges?"✅":"❌"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(34,211,238,0.08)",border:"1px solid rgba(34,211,238,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>Peek</div>
+              <div style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>👁️ Peek</div>
               <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{isWar?"No peek in WAR":game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pPeeks?"\u2705":"\u274C"}</span>)}
+                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pPeeks?"✅":"❌"}</span>)}
+              </div>
+            </div>
+            <div style={{padding:16,background:"rgba(250,204,21,0.08)",border:"1px solid rgba(250,204,21,0.3)",borderRadius:16}}>
+              <div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginBottom:8}}>🎲 Double Down</div>
+              <button className="btn" onClick={doubleDown} disabled={!game||game.winner||game.reveal||game.pDoubleDown||game.pDoubles<=0} style={{background:game.pDoubleDown?"#059669":game.pDoubles>0?"#d97706":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pDoubleDown?"Doubled!":game.pDoubles>0?"2x Points":"No doubles"}</button>
+              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
+                {Array.from({length:MAX_DOUBLES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pDoubles?"✅":"❌"}</span>)}
+              </div>
+            </div>
+          </div>
+          <div style={{fontSize:18,fontWeight:700,color:"#fda4af",marginBottom:6,textTransform:"uppercase",letterSpacing:2}}>Opponent Abilities</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:12}}>
+            <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
+              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>⚡ Buffs</div>
+              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oCharges} remaining</div>
+              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
+                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oCharges?"✅":"❌"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>Opponent Buffs</div>
-              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oCharges} remaining</div>
+              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>⚡ Counter-Strike</div>
+              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>20% counter chance</div>
+              <div style={{fontSize:15,color:"#64748b",textAlign:"center"}}>Auto-triggers when you boost</div>
+            </div>
+            <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
+              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>🛡️ Shield</div>
+              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oShields} remaining</div>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oCharges?"\u2705":"\u274C"}</span>)}
+                {Array.from({length:MAX_SHIELDS}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oShields?"✅":"❌"}</span>)}
               </div>
             </div>
-          </div>}
+          </div>
+          </>}
           {isWar&&<div className="war-banner" style={{marginBottom:12}}>WAR! Three cards go down each. The third card decides the pile.</div>}
           {roundResult}
           {game?.winner&&<div className="win-text" style={{marginTop:8}}>
@@ -928,12 +999,12 @@ function App(){
 </div>}
         </div>
         <div className="grid-2">
-          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":"Your card"} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff}/>
+          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":(game?.pDoubleDown?"Your card (DOUBLE DOWN!)":"Your card")} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff}/>
           {(()=>{
             const isPeeking=game?.pPeeking&&!game?.reveal;
             const peekCard=isPeeking?((game?.tp?.length>0)?game?.op?.[2]:game?.op?.[0]):null;
             if(peekCard)return <FlipCard card={peekCard} facedown={false} label="Peeking at opponent's next card"/>;
-            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff}/>;
+            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike}/>;
           })()}
         </div>
         {/* Stats Panel */}
