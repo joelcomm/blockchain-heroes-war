@@ -174,6 +174,7 @@ const CARD_BACK = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/QmZ91
 const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
 const DECK_SIZE = 50;
+const MAX_ROUNDS = 50;
 
 /* ═══════════ HERO POWER NAMES ═══════════ */
 const HERO_POWER_NAMES = {
@@ -320,7 +321,7 @@ function buildDeck(pool){
   }
   return [...picks.values()];
 }
-function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[] }; }
+function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0 }; }
 function prepareRound(g){
   if(g.winner)return g;
   if(g.tp.length===0){
@@ -341,9 +342,18 @@ function resolveRound(g){
   const pile=[...g.tp,...cpCards,...coCards];
   const ps=getCardStrength(g.cur.p)+(g.pBuff?1:0), os=getCardStrength(g.cur.o)+(g.oBuff?1:0);
   let fp=npp, fo=nop, nt=[];
-  if(ps>os)fp=[...npp,...pile]; else if(os>ps)fo=[...nop,...pile]; else nt=pile;
-  let w=null; if(!fp.length&&!fo.length)w="tie"; else if(!fp.length)w="opponent"; else if(!fo.length)w="player";
-  return{pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:g.round+1,winner:w,wfp:[],wfo:[]};
+  let pPts=g.pPts, oPts=g.oPts, lp=0;
+  const rd=g.round+1;
+  if(ps>os){ fp=[...npp,...pile]; pPts+=pile.length; lp=pile.length; }
+  else if(os>ps){ fo=[...nop,...pile]; oPts+=pile.length; lp=pile.length; }
+  else if(rd>=MAX_ROUNDS){ nt=[]; }
+  else nt=pile;
+  let w=null;
+  if(!fp.length&&!fo.length)w="tie";
+  else if(!fp.length)w="opponent";
+  else if(!fo.length)w="player";
+  else if(rd>=MAX_ROUNDS)w=pPts>oPts?"player":oPts>pPts?"opponent":"tie";
+  return{pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp};
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
@@ -537,8 +547,8 @@ function App(){
   const pLeft=game?.pp.length??deck.length;
   const oLeft=game?.op.length??0;
   const isWar=(game?.tp.length??0)>0;
-  const total=pLeft+oLeft+(game?.tp?.length||0);
-  const pPct=total>0?Math.round(pLeft/total*100):50;
+  const totalPts=(game?.pPts??0)+(game?.oPts??0);
+  const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
   const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards))); };
   const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
@@ -552,8 +562,9 @@ function App(){
 
   const roundResult=game&&game.cur&&!game.reveal?(()=>{
     const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0),os=getCardStrength(game.cur.o)+(game.oBuff?1:0);
-    if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os})</div>;
-    if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins this round! ({ps} vs {os})</div>;
+    const lp=game.lastPtsWon||0;
+    if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts</div>;
+    if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins! ({ps} vs {os}) +{lp} pts</div>;
     return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os})</div>;
   })():null;
 
@@ -600,13 +611,16 @@ function App(){
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:12}}>Go to Collection & Deck to build your deck first.</div>}
           {game&&<div style={{marginBottom:12}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:15,color:"#94a3b8",marginBottom:4}}>
-              <span>You: {pLeft}</span><span>Round {game.round}</span><span>Opp: {oLeft}</span>
+              <span>You: {game.pPts} pts ({pLeft} cards)</span><span>Round {game.round}/{MAX_ROUNDS}</span><span>Opp: {game.oPts} pts ({oLeft} cards)</span>
             </div>
             <div className="score-track"><div className="score-fill" style={{width:pPct+"%"}}/></div>
           </div>}
           {isWar&&<div className="war-banner" style={{marginBottom:12}}>WAR! Three cards go down each. The third card decides the pile.</div>}
           {roundResult}
-          {game?.winner&&<div className="win-text" style={{marginTop:8}}>{game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}</div>}
+          {game?.winner&&<div className="win-text" style={{marginTop:8}}>
+  {game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}
+  <div style={{fontSize:16,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final Score: You {game.pPts} - {game.oPts} Opponent{game.round>=MAX_ROUNDS?" (Round limit reached)":" (All cards captured)"}</div>
+</div>}
         </div>
         <div className="grid-2">
           <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":"Your card"} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff}/>
