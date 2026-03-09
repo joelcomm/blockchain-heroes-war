@@ -4,7 +4,7 @@ import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig.js';
 // Badge template definitions
 const BADGES = {
   first_match: {
-    template_id: 904584,
+    template_id: 904586,
     name: "Blockchain Heroes WARS Badge",
     description: "Awarded for playing your first match",
   },
