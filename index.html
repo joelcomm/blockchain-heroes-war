@@ -9,6 +9,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <!-- WaxJS: local bundle from GitHub repo dist-web -->
 <script src="waxjs.js"></script>
+<!-- Anchor Wallet -->
+<script src="https://unpkg.com/anchor-link@3"></script>
+<script src="https://unpkg.com/anchor-link-browser-transport@3"></script>
 <script>
   // Bridge: capture waxjs reference before Babel processes its scripts
   // Babel standalone can sometimes shadow globals in its eval scope
@@ -419,11 +422,14 @@ function App(){
 
   // Wallet state
   const [walletAccount,setWalletAccount]=useState(null);
+  const [walletType,setWalletType]=useState(null); // "wcw" or "anchor"
   const [walletLoading,setWalletLoading]=useState(false);
   const [inventoryLoading,setInventoryLoading]=useState(false);
   const [error,setError]=useState("");
   const [rarityFilter,setRarityFilter]=useState({legendary:true,epic:true,rare:true,uncommon:true,common:true});
   const waxRef=useRef(null);
+  const anchorLinkRef=useRef(null);
+  const anchorSessionRef=useRef(null);
 
   const isConnected = !!walletAccount;
   const toggleRarityFilter=(r)=>setRarityFilter(f=>({...f,[r]:!f[r]}));
@@ -473,7 +479,7 @@ function App(){
       (async ()=>{
         try {
           const avail = await waxRef.current.isAutoLoginAvailable();
-          if(avail) setWalletAccount(waxRef.current.userAccount);
+          if(avail){ setWalletType("wcw"); setWalletAccount(waxRef.current.userAccount); }
         } catch(e){}
       })();
     };
@@ -534,6 +540,7 @@ function App(){
     setError("");
     try {
       const account = await waxRef.current.login();
+      setWalletType("wcw");
       setWalletAccount(account);
     } catch(e){
       if(e?.message?.includes("closed") || e?.message?.includes("cancel")){
@@ -547,13 +554,70 @@ function App(){
   };
 
   const disconnectWallet = ()=>{
+    if(walletType==="anchor" && anchorSessionRef.current){
+      try{ anchorSessionRef.current.remove(); }catch(e){}
+      anchorSessionRef.current=null;
+    }
     setWalletAccount(null);
+    setWalletType(null);
     setGame(null);
     // Re-initialize WaxJS for fresh login next time
     if(typeof waxjs !== "undefined" && waxjs.WaxJS){
       waxRef.current = new waxjs.WaxJS({ rpcEndpoint: WAX_CONFIG.rpcEndpoint, tryAutoLogin: false });
     }
   };
+
+  // --- Anchor Wallet ---
+  function getAnchorLink(){
+    if(anchorLinkRef.current) return anchorLinkRef.current;
+    if(typeof AnchorLink==="undefined"||typeof AnchorLinkBrowserTransport==="undefined") return null;
+    const transport = new AnchorLinkBrowserTransport();
+    const link = new AnchorLink({ transport, chains:[{ chainId:"1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4", nodeUrl: WAX_CONFIG.rpcEndpoint }] });
+    anchorLinkRef.current = link;
+    return link;
+  }
+
+  const connectAnchor = async ()=>{
+    const link = getAnchorLink();
+    if(!link){
+      setError("Anchor Wallet library not loaded. Please refresh and try again.");
+      return;
+    }
+    setWalletLoading(true);
+    setError("");
+    try {
+      const identity = await link.login("blockherowar");
+      const { session } = identity;
+      anchorSessionRef.current = session;
+      const account = String(session.auth.actor);
+      setWalletType("anchor");
+      setWalletAccount(account);
+    } catch(e){
+      if(e?.message?.includes("cancel")||e?.message?.includes("closed")){
+        // user cancelled
+      } else {
+        setError("Anchor login failed: " + (e?.message||"Unknown error"));
+      }
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  // Anchor session restore on mount
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const link = getAnchorLink();
+        if(!link) return;
+        const session = await link.restoreSession("blockherowar");
+        if(session){
+          anchorSessionRef.current = session;
+          setWalletType("anchor");
+          setWalletAccount(String(session.auth.actor));
+        }
+      } catch(e){}
+    })();
+  },[]);
 
   const opp=OPPONENTS.find(o=>o.id===oppId)||OPPONENTS[0];
   const dc=countByRarity(deck);
@@ -596,13 +660,18 @@ function App(){
                 Disconnect
               </button>
               <span className="badge badge-live">
-                {walletAccount}
+                {walletAccount} ({walletType==="anchor"?"Anchor":"WCW"})
               </span>
             </>
           ) : (
-            <button className="btn btn-wallet" onClick={connectWallet} disabled={walletLoading}>
-              {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Connect Wallet"}
-            </button>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+              <button className="btn btn-wallet" onClick={connectWallet} disabled={walletLoading}>
+                {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "WAX Cloud Wallet"}
+              </button>
+              <button className="btn btn-wallet" onClick={connectAnchor} disabled={walletLoading} style={{background:"linear-gradient(135deg,#3650A2,#4A6CF7)"}}>
+                {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Anchor Wallet"}
+              </button>
+            </div>
           )}
           {!isConnected && <span className="badge badge-demo">Not Connected</span>}
         </div>
@@ -614,7 +683,7 @@ function App(){
         <details style={{cursor:"pointer"}}>
           <summary style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>How to Play</summary>
           <ol style={{fontSize:18,color:"#cbd5e1",lineHeight:1.8,paddingLeft:24,marginTop:10}}>
-            <li>Connect your WAX Cloud Wallet.</li>
+            <li>Connect your WAX Cloud Wallet or Anchor Wallet.</li>
             <li>Load your Series 1 Blockchain Heroes.</li>
             <li>Choose your heroes or click <strong>BUILD</strong> to fill your slots.</li>
             <li>Use your special abilities strategically to win.</li>
