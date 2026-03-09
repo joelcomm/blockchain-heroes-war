@@ -1,0 +1,414 @@
+{
+  "powerSystem": {
+    "triggerByRarity": {
+      "common": { "type": "passive", "description": "Auto-triggers every time the card is played", "deckCap": 16 },
+      "uncommon": { "type": "random", "chance": 0.4, "description": "40% chance to trigger when played", "deckCap": 12 },
+      "rare": { "type": "random", "chance": 0.6, "description": "60% chance to trigger when played", "deckCap": 10 },
+      "epic": { "type": "playerChoice", "usesPerBattle": 3, "description": "Player chooses when to activate (3 uses per battle)", "deckCap": 8 },
+      "legendary": { "type": "playerChoice", "usesPerBattle": 2, "description": "Player chooses when to activate (2 uses per battle)", "deckCap": 4 }
+    },
+    "notes": "All powers only affect the current battle. No effects carry over to future battles. Power trigger type is determined by the card's rarity, not the hero number."
+  },
+  "heroPowers": [
+    {
+      "cardNumber": 1,
+      "name": "Genesis",
+      "powerName": "The Unleashing",
+      "description": "Reveals opponent's next card before it's played.",
+      "effect": { "type": "peek", "target": "opponent", "cards": 1 },
+      "flavor": "His mystery grants foresight — you see what's coming next."
+    },
+    {
+      "cardNumber": 2,
+      "name": "Metalik",
+      "powerName": "Immutable Body",
+      "description": "+3 strength. Metalik's smart-contract-reinforced body is nearly indestructible.",
+      "effect": { "type": "boostSelf", "amount": 3 },
+      "flavor": "Steel skin gleams as smart contracts reinforce his frame."
+    },
+    {
+      "cardNumber": 3,
+      "name": "Litespeed",
+      "powerName": "Faster Than Light",
+      "description": "If losing this round, play a second card and add its strength.",
+      "effect": { "type": "playExtra", "condition": "losing", "cards": 1 },
+      "flavor": "A blur of speed — Litespeed plays two cards before anyone can blink."
+    },
+    {
+      "cardNumber": 4,
+      "name": "CoinCommando",
+      "powerName": "Demolition Charge",
+      "description": "Opponent's card loses 2 strength. Explosions weaken the enemy.",
+      "effect": { "type": "reduceOpponent", "amount": 2 },
+      "flavor": "BOOM! CoinCommando's explosive charge rattles the opponent."
+    },
+    {
+      "cardNumber": 5,
+      "name": "Trilogy",
+      "powerName": "Construct",
+      "description": "+1 strength for every 3 cards in your win pile (max +5).",
+      "effect": { "type": "boostSelf", "scaling": "winPile", "per": 3, "max": 5 },
+      "flavor": "Trilogy builds momentum — the more you've won, the stronger the construct."
+    },
+    {
+      "cardNumber": 6,
+      "name": "Magic Man",
+      "powerName": "The Vanishing Act",
+      "description": "Swap this card's strength with the opponent's card strength.",
+      "effect": { "type": "swapStrength" },
+      "flavor": "Now you see it... now you don't! Strengths are magically switched."
+    },
+    {
+      "cardNumber": 7,
+      "name": "Master Control",
+      "powerName": "Smart Disc",
+      "description": "+2 strength. If you win this round, gain +1 bonus on your next round.",
+      "effect": { "type": "boostSelf", "amount": 2, "bonusOnWin": { "nextRound": 1 } },
+      "flavor": "The disc arcs perfectly, returning with extra momentum."
+    },
+    {
+      "cardNumber": 8,
+      "name": "Stampede",
+      "powerName": "Chaotic Charge",
+      "description": "Both cards get a random strength modifier between -2 and +3.",
+      "effect": { "type": "randomBoth", "min": -2, "max": 3 },
+      "flavor": "Stampede's chaotic energy shakes up both sides — anything can happen!"
+    },
+    {
+      "cardNumber": 9,
+      "name": "Brightstroke",
+      "powerName": "Living Color Shield",
+      "description": "Negates opponent's power this round. Brightstroke paints a protective shield.",
+      "effect": { "type": "negateOpponentPower" },
+      "flavor": "A vivid shield of living paint absorbs the enemy's ability."
+    },
+    {
+      "cardNumber": 10,
+      "name": "Mr Wick",
+      "powerName": "Burn It Down",
+      "description": "If you lose this round, destroy 1 random card from opponent's win pile.",
+      "effect": { "type": "destroyFromWinPile", "condition": "losing", "count": 1 },
+      "flavor": "Even in defeat, Mr. Wick's flames consume an enemy card."
+    },
+    {
+      "cardNumber": 11,
+      "name": "CypherFunk",
+      "powerName": "Crypto Breach",
+      "description": "Peek at opponent's next 2 cards and choose which they must play next.",
+      "effect": { "type": "peekAndChoose", "target": "opponent", "cards": 2 },
+      "flavor": "CypherFunk hacks into the enemy's hand and forces their play."
+    },
+    {
+      "cardNumber": 12,
+      "name": "Felonious",
+      "powerName": "Jailbreak",
+      "description": "+2 strength. If in a WAR (tie), +5 instead. Felonious thrives under pressure.",
+      "effect": { "type": "boostSelf", "amount": 2, "warBonus": 5 },
+      "flavor": "Chains break as Felonious powers up — especially when cornered!"
+    },
+    {
+      "cardNumber": 13,
+      "name": "The Oracle",
+      "powerName": "Third Eye",
+      "description": "Reveals both players' next cards. You may choose to force a WAR instead.",
+      "effect": { "type": "peekBoth", "canForceWar": true },
+      "flavor": "The Oracle's third eye opens, seeing what lies ahead for both sides."
+    },
+    {
+      "cardNumber": 14,
+      "name": "Super Stomp",
+      "powerName": "Immutable Temple",
+      "description": "+4 strength, but only if your card's base strength is lower than opponent's.",
+      "effect": { "type": "boostSelf", "amount": 4, "condition": "underdogOnly" },
+      "flavor": "The disciplined warrior channels strength when outmatched."
+    },
+    {
+      "cardNumber": 15,
+      "name": "X-Change",
+      "powerName": "Identity Theft",
+      "description": "Copy the opponent's power this round and use it as your own.",
+      "effect": { "type": "copyOpponentPower" },
+      "flavor": "X-Change's mask shimmers as he takes on the enemy's own ability!"
+    },
+    {
+      "cardNumber": 16,
+      "name": "Great Gecko",
+      "powerName": "Wall Crawler",
+      "description": "+1 strength. If you lose, this card returns to your deck instead of opponent's win pile.",
+      "effect": { "type": "boostSelf", "amount": 1, "returnOnLoss": true },
+      "flavor": "Great Gecko clings to the wall and escapes capture."
+    },
+    {
+      "cardNumber": 17,
+      "name": "Courage",
+      "powerName": "Fearless Flight",
+      "description": "+3 strength. Courage cannot be affected by opponent powers this round.",
+      "effect": { "type": "boostSelf", "amount": 3, "immune": true },
+      "flavor": "Soaring above it all, no Centralizer trick can touch Courage."
+    },
+    {
+      "cardNumber": 18,
+      "name": "Renegade",
+      "powerName": "Ghost Protocol",
+      "description": "If you lose this round, negate the loss — it becomes a tie instead.",
+      "effect": { "type": "lossToTie" },
+      "flavor": "Renegade should be down, but somehow... he's still standing."
+    },
+    {
+      "cardNumber": 19,
+      "name": "Lady Lightning",
+      "powerName": "Chain Lightning",
+      "description": "Opponent's card loses 3 strength. If it drops below yours, steal 1 card from tie pile.",
+      "effect": { "type": "reduceOpponent", "amount": 3, "bonusIfWin": "stealTiePile1" },
+      "flavor": "ZAP! Lightning arcs through the opponent's card, shorting it out."
+    },
+    {
+      "cardNumber": 20,
+      "name": "Silver Scientist",
+      "powerName": "Data Transmutation",
+      "description": "Convert the tie pile into bonus strength: +1 per card in the tie pile.",
+      "effect": { "type": "boostSelf", "scaling": "tiePile", "per": 1 },
+      "flavor": "The alchemist transmutes accumulated data into raw power."
+    },
+    {
+      "cardNumber": 21,
+      "name": "Wyld Wrangler",
+      "powerName": "Lasso Lock",
+      "description": "Opponent's power is disabled and their strength is reduced by 1.",
+      "effect": { "type": "reduceOpponent", "amount": 1, "negateOpponentPower": true },
+      "flavor": "YEEHAW! The lasso wraps tight, shutting down the enemy."
+    },
+    {
+      "cardNumber": 22,
+      "name": "The Emissary",
+      "powerName": "Rally The People",
+      "description": "+1 strength for each of the last 3 rounds you won (max +3).",
+      "effect": { "type": "boostSelf", "scaling": "recentWins", "lookback": 3, "max": 3 },
+      "flavor": "The crowd roars as Emissary rides a winning streak!"
+    },
+    {
+      "cardNumber": 23,
+      "name": "Data Avenger",
+      "powerName": "P.O.G. Strike",
+      "description": "Opponent loses 2 strength. If opponent's power was active, they lose 4 instead.",
+      "effect": { "type": "reduceOpponent", "amount": 2, "bonusVsPower": 4 },
+      "flavor": "P.O.G. locks on and fires — extra damage if the target's systems are active!"
+    },
+    {
+      "cardNumber": 24,
+      "name": "The Wizard",
+      "powerName": "Cybermagic Script",
+      "description": "Choose one: +3 strength OR opponent -3 strength.",
+      "effect": { "type": "playerChoiceEffect", "options": ["boostSelf3", "reduceOpponent3"] },
+      "flavor": "The Wizard's spell can shield or strike — the choice is yours."
+    },
+    {
+      "cardNumber": 25,
+      "name": "Overseer",
+      "powerName": "Mission Support",
+      "description": "+2 strength to this card. Your next card also gets +1 strength.",
+      "effect": { "type": "boostSelf", "amount": 2, "nextCardBoost": 1 },
+      "flavor": "Overseer's briefing boosts morale for this round and the next."
+    },
+    {
+      "cardNumber": 26,
+      "name": "Forecaster",
+      "powerName": "Storm Front",
+      "description": "Randomly set opponent's strength to any value between 1 and their current strength.",
+      "effect": { "type": "randomReduceOpponent", "min": 1 },
+      "flavor": "An unpredictable storm rolls in, disrupting the enemy's power."
+    },
+    {
+      "cardNumber": 27,
+      "name": "Professor Axiom",
+      "powerName": "Emergent Proof",
+      "description": "Double the difference if you win this round (win by 2 → gain 4 cards equivalent).",
+      "effect": { "type": "doubleWinValue" },
+      "flavor": "Axiom's calculations amplify the victory to mathematical perfection."
+    },
+    {
+      "cardNumber": 28,
+      "name": "Maximum",
+      "powerName": "Unstoppable Force",
+      "description": "+5 strength, but if you lose anyway, opponent gains +2 on their next round.",
+      "effect": { "type": "boostSelf", "amount": 5, "penaltyOnLoss": { "opponentNextBoost": 2 } },
+      "flavor": "Maximum charges with devastating power — but the rebound can hurt."
+    },
+    {
+      "cardNumber": 29,
+      "name": "The Chairman",
+      "powerName": "Energy Shield",
+      "description": "Reduce all damage to this card by 3 (opponent power effects reduced by 3).",
+      "effect": { "type": "shield", "damageReduction": 3 },
+      "flavor": "A glowing energy shield deflects incoming attacks."
+    },
+    {
+      "cardNumber": 30,
+      "name": "The Senator",
+      "powerName": "Filibuster",
+      "description": "Force this round to be a tie regardless of strength values.",
+      "effect": { "type": "forceTie" },
+      "flavor": "The Senator talks and talks until time runs out — nobody wins this round."
+    },
+    {
+      "cardNumber": 31,
+      "name": "Mz Stability",
+      "powerName": "Immovable Object",
+      "description": "Set your card's strength to match your opponent's exactly, then add +1.",
+      "effect": { "type": "matchOpponentPlus", "bonus": 1 },
+      "flavor": "Mz Stability plants her feet and becomes an immovable wall — plus a little extra."
+    },
+    {
+      "cardNumber": 32,
+      "name": "Dynamic Defiant",
+      "powerName": "Telekinetic Surge",
+      "description": "+4 strength. Negates opponent's power. The ultimate offense and defense.",
+      "effect": { "type": "boostSelf", "amount": 4, "negateOpponentPower": true },
+      "flavor": "Reality bends as Defiant lifts everything in his path with his mind."
+    },
+    {
+      "cardNumber": 33,
+      "name": "Bitcoin Bro",
+      "powerName": "Smoke Screen",
+      "description": "Hide your card's strength from the opponent. They must play blind.",
+      "effect": { "type": "hideStrength" },
+      "flavor": "Thick smoke rolls in — the opponent can't see what they're up against."
+    },
+    {
+      "cardNumber": 34,
+      "name": "Sooth 'N Sayer",
+      "powerName": "Dual Commentary",
+      "description": "Peek at the next 3 cards in your deck. You may rearrange them in any order.",
+      "effect": { "type": "peekAndReorder", "target": "self", "cards": 3 },
+      "flavor": "Two minds are better than one — Sooth n' Sayer sees the future and rearranges it!"
+    },
+    {
+      "cardNumber": 35,
+      "name": "Gingergirl",
+      "powerName": "Power Glove Punch",
+      "description": "+3 strength. If this is a WAR round, +6 instead.",
+      "effect": { "type": "boostSelf", "amount": 3, "warBonus": 6 },
+      "flavor": "The powergloves crackle with energy — double power during WAR!"
+    },
+    {
+      "cardNumber": 36,
+      "name": "Jester",
+      "powerName": "Wild Card",
+      "description": "Randomly trigger any other hero's power from your deck.",
+      "effect": { "type": "randomPowerFromDeck" },
+      "flavor": "What will Jester do? Nobody knows — not even Jester!"
+    },
+    {
+      "cardNumber": 37,
+      "name": "The Creatrix",
+      "powerName": "Manifest",
+      "description": "Create a phantom card with strength 3 and add it to the round (your total = card + 3).",
+      "effect": { "type": "createPhantom", "phantomStrength": 3 },
+      "flavor": "From nothing, Creatrix conjures a soldier of light to fight alongside her."
+    },
+    {
+      "cardNumber": 38,
+      "name": "Scrivener",
+      "powerName": "Rewrite Reality",
+      "description": "Change the opponent's card to any card already in their discard/win pile.",
+      "effect": { "type": "rewriteOpponentCard" },
+      "flavor": "Scrivener's pen strikes, rewriting what card the opponent plays."
+    },
+    {
+      "cardNumber": 39,
+      "name": "Rowdy Rook",
+      "powerName": "Aerial Dive",
+      "description": "+2 strength. If you win, peek at opponent's next card.",
+      "effect": { "type": "boostSelf", "amount": 2, "peekOnWin": true },
+      "flavor": "Rook dives from above, and his keen eyes spot what's coming next."
+    },
+    {
+      "cardNumber": 40,
+      "name": "Rocketman",
+      "powerName": "Turbine Boost",
+      "description": "+2 strength for each consecutive win (resets on loss). Max +6.",
+      "effect": { "type": "boostSelf", "scaling": "streak", "perWin": 2, "max": 6 },
+      "flavor": "Rocketman's turbine accelerates with every victory — he's really taking off!"
+    },
+    {
+      "cardNumber": 41,
+      "name": "The Prophet",
+      "powerName": "Convert",
+      "description": "Steal opponent's power and use it for yourself this round. If they had none, +3 strength.",
+      "effect": { "type": "stealPower", "fallbackBoost": 3 },
+      "flavor": "The Prophet converts the enemy's own strength to his cause."
+    },
+    {
+      "cardNumber": 42,
+      "name": "Rock Fierce",
+      "powerName": "Boulder Toss",
+      "description": "+4 strength. Opponent's power is crushed (negated). Rocks beat everything.",
+      "effect": { "type": "boostSelf", "amount": 4, "negateOpponentPower": true },
+      "flavor": "A massive boulder flies through the air — nothing stops it!"
+    },
+    {
+      "cardNumber": 43,
+      "name": "The Crusader",
+      "powerName": "Immutable Armory",
+      "description": "+3 strength. If opponent tries to reduce your strength, reduce theirs by the same amount instead.",
+      "effect": { "type": "boostSelf", "amount": 3, "reflectDebuff": true },
+      "flavor": "The Crusader's immutable armor reflects all attacks back at the attacker."
+    },
+    {
+      "cardNumber": 44,
+      "name": "Supernova",
+      "powerName": "Nuclear Reaction",
+      "description": "+6 strength. The single biggest raw power boost in the game.",
+      "effect": { "type": "boostSelf", "amount": 6 },
+      "flavor": "KABOOM! Supernova unleashes the fury of a collapsing star."
+    },
+    {
+      "cardNumber": 45,
+      "name": "Ethermage",
+      "powerName": "Uncounterable Spell",
+      "description": "+4 strength. This power cannot be negated, copied, or stolen.",
+      "effect": { "type": "boostSelf", "amount": 4, "uncounterable": true },
+      "flavor": "Smart contract magic — once cast, it cannot be undone."
+    },
+    {
+      "cardNumber": 46,
+      "name": "Repeat",
+      "powerName": "Double Play",
+      "description": "Play this card's power twice. Whatever effect it has, it happens two times.",
+      "effect": { "type": "doubleTrigger" },
+      "flavor": "Everything happens twice with Repeat — the Centralizers are seeing double!"
+    },
+    {
+      "cardNumber": 47,
+      "name": "Executive Powers",
+      "powerName": "Hostile Takeover",
+      "description": "Steal all cards from the current tie pile (if any). If no tie pile, +4 strength.",
+      "effect": { "type": "stealTiePile", "fallbackBoost": 4 },
+      "flavor": "Powers swoops in and acquires all contested assets."
+    },
+    {
+      "cardNumber": 48,
+      "name": "Everlasting",
+      "powerName": "Time Warp",
+      "description": "Replay the previous round with this card replacing your last card. Can change the outcome.",
+      "effect": { "type": "replayPreviousRound" },
+      "flavor": "Time folds as Everlasting steps back and rewrites history."
+    },
+    {
+      "cardNumber": 49,
+      "name": "Captain Crypto",
+      "powerName": "Sonic Boom",
+      "description": "Opponent's next 2 cards are revealed AND their strength is reduced by 1 each.",
+      "effect": { "type": "sonicBoom", "peekCards": 2, "reduceNext": 1 },
+      "flavor": "COVER YOUR EARS! The shockwave rattles cards out of the enemy's deck."
+    },
+    {
+      "cardNumber": 50,
+      "name": "Megamine",
+      "powerName": "Deep Drill",
+      "description": "Dig 5 cards deep into your deck. Play the strongest one instead of this card.",
+      "effect": { "type": "digAndPlay", "depth": 5 },
+      "flavor": "Megamine drills deep and surfaces with the best card buried below."
+    }
+  ]
+}
