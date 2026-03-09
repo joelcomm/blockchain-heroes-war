@@ -209,31 +209,7 @@ const OPPONENTS = [
   { id:"eddie", name:"Epic Eddie", description:"Prefers epic-heavy builds.", strategy:["epic","rare","legendary","uncommon","common"] },
   { id:"crusher", name:"Common Crusher", description:"Leans on low-rarity depth.", strategy:["common","uncommon","rare","epic","legendary"] },
 ];
-const MOCK_HEROES = [
-  "Genesis","Metalik","Litespeed","CoinCommando","Trilogy",
-  "Magic Man","Master Control","Stampede","Brightstroke","Mr Wick",
-  "CypherFunk","Felonious","The Oracle","Super Stomp","X-Change",
-  "Great Gecko","Courage","Renegade","Lady Lightning","Silver Scientist",
-  "Wyld Wrangler","The Emissary","Data Avenger","The Wizard","Overseer",
-  "Forecaster","Professor Axiom","Maximum","The Chairman","The Senator",
-  "Mz Stability","Dynamic Defiant","Bitcoin Bro","Sooth N Sayer","Gingergirl",
-  "Jester","The Creatrix","Scrivener","Rowdy Rook","Rocketman",
-  "The Prophet","Rock Fierce","The Crusader","Supernova","Ethermage",
-  "Repeat","Executive Powers","Everlasting","Captain Crypto","Megamine",
-];
-const MOCK_RARITIES = ["common","uncommon","rare","epic","legendary"];
-const MOCK_CARDS = (()=>{
-  const cards=[]; let id=1;
-  MOCK_HEROES.forEach((name,hi)=>{
-    // Each hero gets 2-5 rarity variants
-    const numVariants=2+Math.floor((hi*7+3)%4);
-    const startRarity=hi%3;
-    for(let v=0;v<numVariants&&(startRarity+v)<5;v++){
-      cards.push({ id:String(id++), templateId:String(1000+hi*10+v), name, rarity:MOCK_RARITIES[startRarity+v] });
-    }
-  });
-  return cards;
-})();
+/* Mock deck removed — wallet login required to play */
 
 /* ═══════════ HELPERS ═══════════ */
 function normalizeHeroName(n){ return (n||"").trim().toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," "); }
@@ -398,8 +374,8 @@ function FlipCard({card,facedown,label,warFD=[]}){
 /* ═══════════ MAIN APP ═══════════ */
 function App(){
   const [tab,setTab]=useState("collection");
-  const [ownedCards,setOwnedCards]=useState(MOCK_CARDS);
-  const [deck,setDeck]=useState(MOCK_CARDS);
+  const [ownedCards,setOwnedCards]=useState([]);
+  const [deck,setDeck]=useState([]);
   const [oppId,setOppId]=useState("collector");
   const [game,setGame]=useState(null);
 
@@ -408,9 +384,11 @@ function App(){
   const [walletLoading,setWalletLoading]=useState(false);
   const [inventoryLoading,setInventoryLoading]=useState(false);
   const [error,setError]=useState("");
+  const [rarityFilter,setRarityFilter]=useState({legendary:true,epic:true,rare:true,uncommon:true,common:true});
   const waxRef=useRef(null);
 
   const isConnected = !!walletAccount;
+  const toggleRarityFilter=(r)=>setRarityFilter(f=>({...f,[r]:!f[r]}));
 
   // Helper: try to create a WaxJS instance
   function tryInitWax(){
@@ -469,8 +447,8 @@ function App(){
   // Load inventory when wallet connects
   useEffect(()=>{
     if(!walletAccount){
-      setOwnedCards(MOCK_CARDS);
-      setDeck(MOCK_CARDS);
+      setOwnedCards([]);
+      setDeck([]);
       setError("");
       return;
     }
@@ -485,15 +463,15 @@ function App(){
           setOwnedCards(cards);
           setDeck([]); // user builds their own deck from live inventory
         } else {
-          setError("No Series 1 cards found in this wallet. Showing demo cards.");
-          setOwnedCards(MOCK_CARDS);
-          setDeck(MOCK_CARDS);
+          setError("No Series 1 cards found in this wallet.");
+          setOwnedCards([]);
+          setDeck([]);
         }
       } catch(e){
         if(!active) return;
         setError(e?.message || "Failed to load wallet inventory.");
-        setOwnedCards(MOCK_CARDS);
-        setDeck(MOCK_CARDS);
+        setOwnedCards([]);
+        setDeck([]);
       } finally {
         if(active) setInventoryLoading(false);
       }
@@ -585,7 +563,7 @@ function App(){
               {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Connect Wallet"}
             </button>
           )}
-          {!isConnected && <span className="badge badge-demo">Demo Inventory</span>}
+          {!isConnected && <span className="badge badge-demo">Not Connected</span>}
         </div>
       </div>
 
@@ -642,7 +620,7 @@ function App(){
           </div>
           <div className="progress-track"><div className="progress-fill" style={{width:fill+"%"}}/></div>
           <div className="grid-5 mt-3">
-            {Object.keys(RARITY_CAPS).map(r=><div key={r} className="rarity-cap-box"><span className={`badge badge-${r}`} style={{fontSize:11}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div></div>)}
+            {Object.keys(RARITY_CAPS).map(r=><div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:11}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div></div>)}
           </div>
         </div>
         <div className="ui-card" style={{marginBottom:16}}>
@@ -679,10 +657,10 @@ function App(){
         <div className="text-sm text-slate mb-4" style={{marginBottom:16}}>
           {isConnected
             ? `Showing ${ownedCards.length} cards from ${walletAccount}'s inventory.`
-            : "Showing demo inventory. Connect your WAX wallet to load your real cards."}
+            : "Connect your WAX wallet to load your cards and build a deck."}
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          {groupCardsByHero(ownedCards).map(([heroKey, variants])=>{
+          {groupCardsByHero(ownedCards).filter(([,variants])=>variants.some(c=>rarityFilter[c.rarity])).map(([heroKey, variants])=>{
             const selectedVariant=variants.find(c=>deck.some(d=>d.id===c.id));
             const heroImg=variants[0]?.img;
             return(
