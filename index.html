@@ -290,11 +290,16 @@ async function fetchOwnedCards(account) {
 }
 
 const RARITIES = ["common","uncommon","rare","epic","legendary"];
+const HERO_CARD_NUMBERS = {"Bitcoin Bro":33,"Brightstroke":9,"Captain Crypto":49,"Coin Commando":4,"Courage":17,"CypherFunk":11,"Data Avenger":23,"Dynamic Defiant":32,"Ethermage":45,"Everlasting":48,"Executive Powers":47,"Felonious":12,"Forecaster":26,"Genesis":1,"GingerGirl":35,"Great Gecko":16,"Jester":36,"Lady Lightning":19,"Litespeed":3,"Magic Man":6,"Master Control":7,"Maximum":28,"MegaMine":50,"Metalik":2,"Mr. Wick":10,"Mz Stability":31,"Overseer":25,"Professor Axiom":27,"Renegade":18,"Repeat":46,"Rock Fierce":42,"Rocketman":40,"Rowdy Rook":39,"Scrivener":38,"Silver Scientist":20,"Soothe 'n Sayer":34,"Stampede":8,"Super Stomp":14,"Supernova":44,"The Chairman":29,"The Creatrix":37,"The Crusader":43,"The Emissary":22,"The Oracle":13,"The Prophet":41,"The Senator":30,"The Wizard":24,"Trilogy":5,"Wyld Wrangler":21,"X-Change":15};
+const HERO_IMG_BASE = "QmS6U7d269tQqV3HRGhbm4YFiKFCbn6FyLAYUZ2otFQEDi";
 function generateDemoCards(){
   const cards=[];
   ALL_HEROES.forEach((name,i)=>{
+    const cn=HERO_CARD_NUMBERS[name]||i+1;
     RARITIES.forEach(r=>{
-      cards.push({ id:"demo-"+i+"-"+r, assetId:"demo-"+i+"-"+r, templateId:"#D"+(i*5+RARITIES.indexOf(r)+1), name, rarity:r, img:undefined });
+      const ext=(r==="epic"||r==="legendary")?"gif":"jpg";
+      const img=HERO_IMG_BASE+"/"+r+"/front/"+cn+"."+ext;
+      cards.push({ id:"demo-"+i+"-"+r, assetId:"demo-"+i+"-"+r, templateId:"#D"+(i*5+RARITIES.indexOf(r)+1), name, rarity:r, img });
     });
   });
   return cards;
@@ -399,9 +404,9 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false}){
           <div className="flip-face flip-back" style={{padding:8}}>
             {card?(<div style={{display:"flex",gap:24,width:"100%",height:"100%",alignItems:"center",padding:"0 8px"}}>
               {/* Left: full card image, fitted to show entire card */}
-              {card.img&&<div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)"}}>
+              <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)"}}>
                 <img src={buildImageUrl(card.img)} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10}} onError={(e)=>{e.target.src=CARD_BACK}} />
-              </div>}
+              </div>
               {/* Right: name, rarity, strength, power */}
               <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:10,minWidth:0}}>
                 <div className={`name-${r}`} style={{fontSize:30,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
