@@ -685,38 +685,28 @@ function App(){
       <div className="header-row">
         <h1 style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><img src="blockchain-heroes-logo.png" alt="Blockchain Heroes" style={{height:60,maxWidth:320}}/> WAR</h1>
         <div className="wallet-area">
-          {walletAccount ? (
-            <>
-              <button className="btn btn-wallet connected" onClick={disconnectWallet}>
-                Disconnect
-              </button>
-              <span className="badge badge-live">
-                {walletAccount} ({walletType==="anchor"?"Anchor":"WCW"})
-              </span>
-            </>
-          ) : demoMode ? (
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:16,color:"#67e8f9"}}>
-                <input type="checkbox" checked={true} onChange={()=>toggleDemoMode(false)} style={{width:20,height:20,accentColor:"#67e8f9"}}/>
-                I don't have cards!
-              </label>
-              <span className="badge" style={{background:"#0e7490",color:"#ecfeff",fontSize:14,padding:"4px 12px",borderRadius:12}}>Demo Mode</span>
-            </div>
-          ) : (
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-              <button className="btn btn-wallet" onClick={connectWallet} disabled={walletLoading}>
-                {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "WAX Cloud Wallet"}
-              </button>
-              <button className="btn btn-wallet" onClick={connectAnchor} disabled={walletLoading} style={{background:"linear-gradient(135deg,#3650A2,#4A6CF7)"}}>
-                {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Anchor Wallet"}
-              </button>
-              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:16,color:"#94a3b8"}}>
-                <input type="checkbox" checked={false} onChange={()=>toggleDemoMode(true)} style={{width:20,height:20,accentColor:"#67e8f9"}}/>
-                I don't have cards!
-              </label>
-            </div>
-          )}
-          {!isConnected && <span className="badge badge-demo">Not Connected</span>}
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            {walletAccount ? (
+              <>
+                <button className="btn btn-wallet connected" onClick={disconnectWallet}>Disconnect</button>
+                <span className="badge badge-live">{walletAccount} ({walletType==="anchor"?"Anchor":"WCW"})</span>
+              </>
+            ) : !demoMode && (
+              <>
+                <button className="btn btn-wallet" onClick={connectWallet} disabled={walletLoading}>
+                  {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "WAX Cloud Wallet"}
+                </button>
+                <button className="btn btn-wallet" onClick={connectAnchor} disabled={walletLoading} style={{background:"linear-gradient(135deg,#3650A2,#4A6CF7)"}}>
+                  {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Anchor Wallet"}
+                </button>
+              </>
+            )}
+            {!walletAccount && <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:16,color:demoMode?"#67e8f9":"#94a3b8"}}>
+              <input type="checkbox" checked={demoMode} onChange={(e)=>toggleDemoMode(e.target.checked)} style={{width:20,height:20,accentColor:"#67e8f9"}}/>
+              I don't have cards!
+            </label>}
+            {demoMode && <span className="badge" style={{background:"#0e7490",color:"#ecfeff",fontSize:14,padding:"4px 12px",borderRadius:12}}>Demo Mode</span>}
+          </div>
         </div>
       </div>
 
