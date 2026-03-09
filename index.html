@@ -198,7 +198,7 @@ const HERO_POWER_NAMES = {
   "megamine":"Deep Drill",
 };
 /* Buff chance by rarity: chance to gain +1 strength (match next tier up) */
-const BUFF_CHANCE = { legendary:0, epic:0.4, rare:0.2, uncommon:0.1, common:0 };
+const BUFF_CHANCE = { legendary:0.05, epic:0.1, rare:0.2, uncommon:0.35, common:0.5 };
 function getHeroPowerName(card){ return HERO_POWER_NAMES[normalizeHeroName(card?.name)] || null; }
 function rollBuff(card){ const chance=BUFF_CHANCE[card?.rarity]||0; if(chance<=0)return false; return Math.random()<chance; }
 const ALL_HEROES = [
@@ -627,7 +627,7 @@ function App(){
           </div>
           <div className="progress-track"><div className="progress-fill" style={{width:fill+"%"}}/></div>
           <div className="grid-5 mt-3">
-            {Object.keys(RARITY_CAPS).map(r=><div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:13}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div></div>)}
+            {Object.keys(RARITY_CAPS).map(r=>{const bc=BUFF_CHANCE[r]||0;return <div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:13}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div>{bc>0&&<div style={{fontSize:11,color:"#4ade80",marginTop:4}}>{Math.round(bc*100)}% chance +1 STR</div>}</div>})}
           </div>
         </div>
         <div className="ui-card" style={{marginBottom:16}}>
