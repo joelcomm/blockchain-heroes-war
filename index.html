@@ -277,19 +277,28 @@ function buildImageUrl(img) {
 }
 
 async function fetchOwnedCards(account) {
-  const params = new URLSearchParams({
-    owner: account,
-    collection_name: WAX_CONFIG.collection,
-    schema_name: WAX_CONFIG.schema,
-    page: "1",
-    limit: "200",
-    order: "desc",
-    sort: "asset_id",
-  });
-  const res = await fetch(WAX_CONFIG.atomicApiBase + "/atomicassets/v1/assets?" + params.toString());
-  if (!res.ok) throw new Error("AtomicAssets request failed: " + res.status);
-  const payload = await res.json();
-  return (payload?.data || []).map(normalizeAtomicAsset).filter(Boolean);
+  const allCards = [];
+  let page = 1;
+  while(true){
+    const params = new URLSearchParams({
+      owner: account,
+      collection_name: WAX_CONFIG.collection,
+      schema_name: WAX_CONFIG.schema,
+      page: String(page),
+      limit: "200",
+      order: "desc",
+      sort: "asset_id",
+    });
+    const res = await fetch(WAX_CONFIG.atomicApiBase + "/atomicassets/v1/assets?" + params.toString());
+    if (!res.ok) throw new Error("AtomicAssets request failed: " + res.status);
+    const payload = await res.json();
+    const batch = (payload?.data || []);
+    const normalized = batch.map(normalizeAtomicAsset).filter(Boolean);
+    allCards.push(...normalized);
+    if(batch.length < 200) break;
+    page++;
+  }
+  return allCards;
 }
 
 function buildDeck(pool){
