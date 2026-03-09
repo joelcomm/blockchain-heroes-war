@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blockchain Heroes WAR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<!-- WaxJS: local bundle from GitHub repo dist-web -->
+<script src="waxjs.js"></script>
+<script>
+  // Bridge: capture waxjs reference before Babel processes its scripts
+  // Babel standalone can sometimes shadow globals in its eval scope
+  if(typeof waxjs !== "undefined"){
+    window.__WaxJSClass = waxjs.WaxJS || waxjs.default?.WaxJS || waxjs.default || null;
+    window.__waxjsRaw = waxjs;
+    console.log("[WaxJS Bridge] Loaded. WaxJS class:", window.__WaxJSClass, "Raw keys:", Object.keys(waxjs));
+  } else {
+    console.error("[WaxJS Bridge] waxjs global is undefined after script load");
+  }
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #111827 45%, #1e1b4b);
+    background-attachment: fixed;
+    color: #f1f5f9;
+    min-height: 100vh;
+  }
+  .app { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  h1 {
+    font-size: 2rem; font-weight: 800;
+    background: linear-gradient(to right, #67e8f9, #f0abfc, #fde68a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tabs-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 4px; margin: 20px 0; }
+  .tab-btn { padding: 10px; border: none; border-radius: 12px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+  .tab-btn.active { background: rgba(255,255,255,0.12); color: #f1f5f9; }
+  .tab-btn:hover { color: #e2e8f0; }
+  .ui-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; margin-bottom: 20px; backdrop-filter: blur(12px); }
+  .ui-card-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .btn { padding: 10px 20px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: #6366f1; color: white; }
+  .btn-primary:hover { background: #818cf8; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-wallet { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+  .btn-wallet:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+  .btn-wallet.connected { background: linear-gradient(135deg, #10b981, #059669); }
+  .btn-wallet.connected:hover { background: linear-gradient(135deg, #34d399, #10b981); }
+  .btn-wallet:disabled { opacity: 0.6; cursor: wait; }
+  .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; }
+  .btn-outline:hover { background: rgba(255,255,255,0.08); }
+  .btn-outline.active-btn { background: #6366f1; color: white; border-color: #6366f1; }
+  .btn-secondary { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.18); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; }
+  .badge { display: inline-flex; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; border: 1px solid; }
+  .badge-legendary { background: rgba(251,191,36,0.2); color: #fde68a; border-color: rgba(251,191,36,0.4); }
+  .badge-epic { background: rgba(168,85,247,0.2); color: #d8b4fe; border-color: rgba(168,85,247,0.4); }
+  .badge-rare { background: rgba(34,211,238,0.2); color: #a5f3fc; border-color: rgba(34,211,238,0.4); }
+  .badge-uncommon { background: rgba(52,211,153,0.2); color: #a7f3d0; border-color: rgba(52,211,153,0.4); }
+  .badge-common { background: rgba(148,163,184,0.2); color: #cbd5e1; border-color: rgba(148,163,184,0.4); }
+  .badge-str { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
+  .badge-power { background: rgba(251,191,36,0.2); color: #fde68a; border-color: rgba(251,191,36,0.3); box-shadow: 0 0 18px rgba(251,191,36,0.18); }
+  .badge-outline { background: transparent; color: #94a3b8; border-color: rgba(255,255,255,0.2); }
+  .badge-demo { background: rgba(232,121,249,0.15); color: #f0abfc; border-color: rgba(232,121,249,0.3); }
+  .badge-live { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.3); }
+  .progress-track { height: 12px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(to right, #6366f1, #818cf8); transition: width 0.4s; }
+  .score-track { height: 12px; background: rgba(232,121,249,0.3); border-radius: 999px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 999px; background: linear-gradient(to right, #22d3ee, #67e8f9); transition: width 0.5s; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .flex-wrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .w-full { width: 100%; }
+  .text-sm { font-size: 14px; }
+  .text-xs { font-size: 12px; }
+  .text-center { text-align: center; }
+  .text-slate { color: #94a3b8; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .mb-4 { margin-bottom: 16px; }
+  .gap-2 { gap: 8px; }
+  .space-y > * + * { margin-top: 16px; }
+  .flip-container { perspective: 1200px; }
+  .flip-inner {
+    position: relative; width: 100%; height: 380px;
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    transform-style: preserve-3d;
+    border-radius: 16px; border: 1px solid rgba(255,255,255,0.15);
+  }
+  .flip-inner.flipped { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden; border-radius: 16px; overflow: hidden;
+  }
+  .flip-back { transform: rotateY(180deg); padding: 20px; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.5); }
+  .flip-inner img.card-back { width: 100%; height: 100%; object-fit: contain; background: #000; border-radius: 16px; }
+  .glow-legendary { box-shadow: 0 0 40px rgba(251,191,36,0.35); border-color: rgba(251,191,36,0.5); background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(0,0,0,0.3)); }
+  .glow-epic { box-shadow: 0 0 35px rgba(168,85,247,0.32); border-color: rgba(168,85,247,0.5); background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(0,0,0,0.3)); }
+  .glow-rare { box-shadow: 0 0 28px rgba(34,211,238,0.26); border-color: rgba(34,211,238,0.5); background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(0,0,0,0.3)); }
+  .glow-uncommon { box-shadow: 0 0 18px rgba(52,211,153,0.22); border-color: rgba(52,211,153,0.4); background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(0,0,0,0.3)); }
+  .glow-common { box-shadow: 0 0 12px rgba(148,163,184,0.15); border-color: rgba(148,163,184,0.3); background: linear-gradient(135deg, rgba(148,163,184,0.1), rgba(0,0,0,0.3)); }
+  .str-circle {
+    width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; font-weight: 900; color: white; margin: 16px auto;
+  }
+  .str-legendary { border-color: rgba(251,191,36,0.6); box-shadow: 0 0 30px rgba(251,191,36,0.25); background: rgba(251,191,36,0.1); }
+  .str-epic { border-color: rgba(168,85,247,0.6); box-shadow: 0 0 30px rgba(168,85,247,0.25); background: rgba(168,85,247,0.1); }
+  .str-rare { border-color: rgba(34,211,238,0.6); box-shadow: 0 0 30px rgba(34,211,238,0.25); background: rgba(34,211,238,0.1); }
+  .str-uncommon { border-color: rgba(52,211,153,0.6); box-shadow: 0 0 30px rgba(52,211,153,0.2); background: rgba(52,211,153,0.1); }
+  .str-common { border-color: rgba(148,163,184,0.4); box-shadow: 0 0 15px rgba(148,163,184,0.1); background: rgba(148,163,184,0.08); }
+  .name-legendary { color: #fbbf24; }
+  .name-epic { color: #c084fc; }
+  .name-rare { color: #22d3ee; }
+  .name-uncommon { color: #34d399; }
+  .name-common { color: #94a3b8; }
+  .war-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; text-align: center; font-weight: 600; color: #fecdd3; animation: pulse-glow 1.2s ease-in-out infinite; }
+  @keyframes pulse-glow { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .win-text { font-size: 24px; font-weight: 800; color: #fde68a; animation: winGlow 1.5s ease-in-out infinite; }
+  @keyframes winGlow { 0%,100%{text-shadow:0 0 20px rgba(251,191,36,0.4)} 50%{text-shadow:0 0 40px rgba(251,191,36,0.8)} }
+  .result-win { color: #6ee7b7; font-weight: 700; font-size: 16px; }
+  .result-lose { color: #fda4af; font-weight: 700; font-size: 16px; }
+  .result-tie { color: #fde68a; font-weight: 700; font-size: 16px; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .slide-up { animation: slideUp 0.35s ease-out; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .war-facedown { display: flex; justify-content: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; }
+  .war-facedown img { height: 100px; width: 70px; object-fit: contain; border-radius: 10px; background: #000; }
+  .war-facedown-label { text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
+  .owner-label { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
+  .collection-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 16px; transition: all 0.2s; }
+  .collection-card.in-deck-legendary { box-shadow: 0 0 30px rgba(251,191,36,0.25); border-color: rgba(251,191,36,0.4); }
+  .collection-card.in-deck-epic { box-shadow: 0 0 25px rgba(168,85,247,0.22); border-color: rgba(168,85,247,0.4); }
+  .collection-card.in-deck-rare { box-shadow: 0 0 20px rgba(34,211,238,0.2); border-color: rgba(34,211,238,0.4); }
+  .collection-card.in-deck-uncommon { box-shadow: 0 0 15px rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.35); }
+  .collection-card.in-deck-common { box-shadow: 0 0 10px rgba(148,163,184,0.12); border-color: rgba(148,163,184,0.3); }
+  .power-box { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3); border-radius: 16px; padding: 12px; color: #fde68a; box-shadow: 0 0 18px rgba(251,191,36,0.12); }
+  .no-power-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; color: #64748b; }
+  .rarity-cap-box { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 10px; text-align: center; }
+  .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  .wallet-area { display: flex; align-items: center; gap: 10px; }
+  .error-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; font-size: 14px; color: #fecdd3; margin-bottom: 16px; }
+  .loading-banner { background: rgba(99,102,241,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 16px; padding: 12px 16px; font-size: 14px; color: #c7d2fe; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  @media (max-width: 640px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-5 { grid-template-columns: repeat(3, 1fr); }
+    h1 { font-size: 1.5rem; }
+    .flip-inner { height: 320px; }
+    .str-circle { width: 80px; height: 80px; font-size: 32px; }
+    .wallet-area { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useCallback, useEffect, useRef } = React;
+
+/* ═══════════ CONFIG ═══════════ */
+const WAX_CONFIG = {
+  collection: "officialhero",
+  schema: "series1",
+  atomicApiBase: "https://aa.wax.blacklusion.io",
+  ipfsGateway: "https://ipfs.io/ipfs/",
+  rpcEndpoint: "https://wax.greymass.com",
+};
+const CARD_BACK = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/QmZ91Zj5PZUnL2F8X9Hg2QXPP3UMbqaDqrRCyMrq6zchRN";
+const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
+const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
+const DECK_SIZE = 50;
+
+const HERO_POWERS = {
+  "1001":{ name:"Whitepaper Surge", label:"+1 Strength", bonus:1, flavor:"This hero bends the round with first-mover energy." },
+  "1002":{ name:"Gas Warp", label:"+1 Strength", bonus:1, flavor:"A burst of chain magic gives this hero an edge." },
+  "1006":{ name:"Legend Pulse", label:"+2 Strength", bonus:2, flavor:"A rare pulse of dominance turns the matchup." },
+};
+const HERO_NAME_POWERS = {
+  satoshi:{ name:"Genesis Edge", label:"+2 Strength", bonus:2, flavor:"The originator carries unmatched first-strike gravity." },
+  vitalik:{ name:"Gas Warp", label:"+1 Strength", bonus:1, flavor:"A burst of chain magic gives this hero an edge." },
+  cz:{ name:"Liquidity Rush", label:"+1 Strength", bonus:1, flavor:"Momentum floods in when the pressure is highest." },
+  andreas:{ name:"Signal Boost", label:"+1 Strength", bonus:1, flavor:"Clarity and conviction tilt the round." },
+  hal:{ name:"Legend Pulse", label:"+2 Strength", bonus:2, flavor:"A rare pulse of dominance turns the matchup." },
+  brock:{ name:"Breaker Mode", label:"+1 Strength", bonus:1, flavor:"When the flip starts, this hero hits harder than expected." },
+  laura:{ name:"Precision Strike", label:"+1 Strength", bonus:1, flavor:"Fine margins become winning margins." },
+  lyn:{ name:"Steady Climb", label:"+1 Strength", bonus:1, flavor:"Quiet consistency becomes late-round leverage." },
+  charlie:{ name:"Scrappy Upset", label:"+1 Strength", bonus:1, flavor:"An underdog burst can flip the entire pile." },
+  "super stomp":{ name:"Ground Smash", label:"+1 Strength", bonus:1, flavor:"A blunt-force blow shakes the whole matchup." },
+};
+const OPPONENTS = [
+  { id:"collector", name:"The Collector", description:"Balanced legal deck.", strategy:["legendary","epic","rare","uncommon","common"] },
+  { id:"eddie", name:"Epic Eddie", description:"Prefers epic-heavy builds.", strategy:["epic","rare","legendary","uncommon","common"] },
+  { id:"crusher", name:"Common Crusher", description:"Leans on low-rarity depth.", strategy:["common","uncommon","rare","epic","legendary"] },
+];
+const MOCK_CARDS = [
+  { id:"1", templateId:"1001", name:"Satoshi", rarity:"legendary" },
+  { id:"2", templateId:"1002", name:"Vitalik", rarity:"epic" },
+  { id:"3", templateId:"1003", name:"CZ", rarity:"rare" },
+  { id:"4", templateId:"1004", name:"Andreas", rarity:"uncommon" },
+  { id:"5", templateId:"1005", name:"Super Stomp", rarity:"common" },
+  { id:"6", templateId:"1006", name:"Hal", rarity:"legendary" },
+  { id:"7", templateId:"1007", name:"Brock", rarity:"epic" },
+  { id:"8", templateId:"1008", name:"Laura", rarity:"rare" },
+  { id:"9", templateId:"1009", name:"Lyn", rarity:"uncommon" },
+  { id:"10", templateId:"1010", name:"Charlie", rarity:"common" },
+];
+
+/* ═══════════ HELPERS ═══════════ */
+function getHeroPower(c){ if(!c)return null; return HERO_POWERS[String(c.templateId)] || HERO_NAME_POWERS[String(c.name||"").trim().toLowerCase()] || null; }
+function getCardStrength(c){ return RARITY_ORDER[c.rarity]+(getHeroPower(c)?.bonus||0); }
+function titleCase(v){ return v.charAt(0).toUpperCase()+v.slice(1); }
+function shuffleArray(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+function countByRarity(d){ const c={legendary:0,epic:0,rare:0,uncommon:0,common:0}; d.forEach(x=>c[x.rarity]++); return c; }
+function canAdd(card,deck){ const c=countByRarity(deck); if(deck.length>=DECK_SIZE)return false; return c[card.rarity]<RARITY_CAPS[card.rarity]; }
+
+function normalizeRarity(raw) {
+  const v = String(raw || "").trim().toLowerCase();
+  if (v === "class" || v === "sticker") return null;
+  if (v in RARITY_ORDER) return v;
+  return "common";
+}
+
+function normalizeAtomicAsset(asset) {
+  const data = asset?.data || {};
+  const rarity = normalizeRarity(data.rarity || data.rank || data.tier);
+  if (!rarity) return null;
+  return {
+    id: String(asset.asset_id),
+    assetId: String(asset.asset_id),
+    templateId: String(asset.template?.template_id || asset.template_id || ""),
+    name: data.name || data.card_name || ("Template " + (asset.template?.template_id || "Unknown")),
+    rarity: rarity,
+    img: data.img || data.image || data.card_image || data.thumbnail
+      || asset?.template?.immutable_data?.img || asset?.template?.immutable_data?.image || undefined,
+  };
+}
+
+function buildImageUrl(img) {
+  if (!img) return CARD_BACK;
+  if (img.startsWith("http://") || img.startsWith("https://")) return img;
+  if (img.startsWith("ipfs://")) return WAX_CONFIG.ipfsGateway + img.replace("ipfs://", "");
+  return WAX_CONFIG.ipfsGateway + img;
+}
+
+async function fetchOwnedCards(account) {
+  const params = new URLSearchParams({
+    owner: account,
+    collection_name: WAX_CONFIG.collection,
+    schema_name: WAX_CONFIG.schema,
+    page: "1",
+    limit: "200",
+    order: "desc",
+    sort: "asset_id",
+  });
+  const res = await fetch(WAX_CONFIG.atomicApiBase + "/atomicassets/v1/assets?" + params.toString());
+  if (!res.ok) throw new Error("AtomicAssets request failed: " + res.status);
+  const payload = await res.json();
+  return (payload?.data || []).map(normalizeAtomicAsset).filter(Boolean);
+}
+
+function buildDeck(pool,strat=["legendary","epic","rare","uncommon","common"]){
+  const s=shuffleArray(pool), d=[], used=new Set();
+  for(const r of strat){ const m=s.filter(c=>c.rarity===r); const t=Math.min(m.length,RARITY_CAPS[r]); for(let i=0;i<t;i++){d.push(m[i]);used.add(m[i].id);} }
+  for(const c of s){ if(d.length>=DECK_SIZE)break; if(used.has(c.id))continue; if(canAdd(c,d)){d.push(c);used.add(c.id);} }
+  return d;
+}
+function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[] }; }
+function prepareRound(g){
+  if(g.winner)return g;
+  if(g.tp.length===0){
+    if(!g.pp[0]||!g.op[0])return{...g,winner:!g.pp[0]&&!g.op[0]?"tie":g.pp[0]?"player":"opponent"};
+    return{...g,cur:{p:g.pp[0],o:g.op[0]},reveal:true,wfp:[],wfo:[]};
+  }
+  if(g.pp.length<3||g.op.length<3)return{...g,winner:g.pp.length===g.op.length?"tie":g.pp.length>g.op.length?"player":"opponent"};
+  return{...g,cur:{p:g.pp[2],o:g.op[2]},reveal:true,wfp:g.pp.slice(0,2),wfo:g.op.slice(0,2)};
+}
+function resolveRound(g){
+  if(!g.cur||g.winner)return g;
+  const inWar=g.tp.length>0, consumed=inWar?3:1;
+  const cpCards=inWar?[...g.wfp,g.cur.p]:[g.cur.p];
+  const coCards=inWar?[...g.wfo,g.cur.o]:[g.cur.o];
+  const npp=g.pp.slice(consumed), nop=g.op.slice(consumed);
+  const pile=[...g.tp,...cpCards,...coCards];
+  const ps=getCardStrength(g.cur.p), os=getCardStrength(g.cur.o);
+  let fp=npp, fo=nop, nt=[];
+  if(ps>os)fp=[...npp,...pile]; else if(os>ps)fo=[...nop,...pile]; else nt=pile;
+  let w=null; if(!fp.length&&!fo.length)w="tie"; else if(!fp.length)w="opponent"; else if(!fo.length)w="player";
+  return{pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:g.round+1,winner:w,wfp:[],wfo:[]};
+}
+
+/* ═══════════ COMPONENTS ═══════════ */
+function FlipCard({card,facedown,label,warFD=[]}){
+  const r=card?.rarity||"common";
+  return(
+    <div className="slide-up">
+      {label&&<div className="owner-label">{label}</div>}
+      {warFD.length>0&&<div style={{marginBottom:10}}><div className="war-facedown-label">WAR face-down cards</div><div className="war-facedown">{warFD.map((c,i)=><img key={i} src={CARD_BACK} alt="facedown"/>)}</div></div>}
+      <div className="flip-container">
+        <div className={`flip-inner ${!facedown?"flipped":""} ${!facedown?"glow-"+r:""}`}>
+          <div className="flip-face"><img className="card-back" src={CARD_BACK} alt="back"/></div>
+          <div className="flip-face flip-back" style={{padding:8}}>
+            {card?(<div style={{display:"flex",gap:24,width:"100%",height:"100%",alignItems:"center",padding:"0 8px"}}>
+              {/* Left: full card image, fitted to show entire card */}
+              <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)"}}>
+                <img src={buildImageUrl(card.img)} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10}} onError={(e)=>{e.target.src=CARD_BACK}} />
+              </div>
+              {/* Right: name, rarity, strength, power */}
+              <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:10,minWidth:0}}>
+                <div className={`name-${r}`} style={{fontSize:20,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  <span className={`badge badge-${r}`}>{titleCase(r)}</span>
+                </div>
+                <div className={`str-circle str-${r}`} style={{width:70,height:70,fontSize:28,margin:0}}>{getCardStrength(card)}</div>
+                <div style={{fontSize:11,color:"#94a3b8"}}>STR: {getCardStrength(card)}</div>
+                {getHeroPower(card)&&<div style={{fontSize:11,padding:"4px 8px",borderRadius:8,background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.3)",color:"#fde68a"}}>{getHeroPower(card).name}<br/><span style={{opacity:0.8}}>{getHeroPower(card).label}</span></div>}
+                <div style={{fontSize:10,color:"#64748b"}}>#{card.templateId}</div>
+              </div>
+            </div>):(<img className="card-back" src={CARD_BACK} alt="back"/>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════ MAIN APP ═══════════ */
+function App(){
+  const [tab,setTab]=useState("collection");
+  const [ownedCards,setOwnedCards]=useState(MOCK_CARDS);
+  const [deck,setDeck]=useState(MOCK_CARDS);
+  const [oppId,setOppId]=useState("collector");
+  const [game,setGame]=useState(null);
+
+  // Wallet state
+  const [walletAccount,setWalletAccount]=useState(null);
+  const [walletLoading,setWalletLoading]=useState(false);
+  const [inventoryLoading,setInventoryLoading]=useState(false);
+  const [error,setError]=useState("");
+  const waxRef=useRef(null);
+
+  const isConnected = !!walletAccount;
+
+  // Helper: try to create a WaxJS instance
+  function tryInitWax(){
+    if(waxRef.current) return true;
+    // Primary: use the bridge reference set by the non-Babel script
+    var Cls = window.__WaxJSClass;
+    // Fallback: try direct global access
+    if(!Cls && typeof waxjs !== "undefined") Cls = waxjs.WaxJS || waxjs.default?.WaxJS || waxjs.default;
+    if(!Cls && typeof WaxJS !== "undefined") Cls = WaxJS;
+    // Last resort: crawl the raw waxjs object for anything with a login method
+    if(!Cls && window.__waxjsRaw){
+      var raw = window.__waxjsRaw;
+      var keys = Object.keys(raw);
+      for(var k=0;k<keys.length;k++){
+        var val = raw[keys[k]];
+        if(val && val.prototype && val.prototype.login){ Cls=val; break; }
+      }
+    }
+    if(Cls){
+      try{
+        waxRef.current = new Cls({ rpcEndpoint: WAX_CONFIG.rpcEndpoint, tryAutoLogin: false });
+        return true;
+      }catch(e){ console.error("[WaxJS] Init error:",e); }
+    }
+    return false;
+  }
+
+  // Initialize WaxJS instance (with retry for async CDN loading)
+  useEffect(()=>{
+    if(tryInitWax()) return;
+    // CDN might still be loading via fallback chain — retry a few times
+    let attempts = 0;
+    const interval = setInterval(()=>{
+      attempts++;
+      if(tryInitWax() || attempts > 10) clearInterval(interval);
+    }, 500);
+    return ()=> clearInterval(interval);
+  },[]);
+
+  // Auto-login check on mount
+  useEffect(()=>{
+    const check = ()=>{
+      if(!waxRef.current) return;
+      (async ()=>{
+        try {
+          const avail = await waxRef.current.isAutoLoginAvailable();
+          if(avail) setWalletAccount(waxRef.current.userAccount);
+        } catch(e){}
+      })();
+    };
+    // Slight delay to let init finish
+    const t = setTimeout(check, 1500);
+    return ()=> clearTimeout(t);
+  },[]);
+
+  // Load inventory when wallet connects
+  useEffect(()=>{
+    if(!walletAccount){
+      setOwnedCards(MOCK_CARDS);
+      setDeck(MOCK_CARDS);
+      setError("");
+      return;
+    }
+    let active=true;
+    (async ()=>{
+      setInventoryLoading(true);
+      setError("");
+      try {
+        const cards = await fetchOwnedCards(walletAccount);
+        if(!active) return;
+        if(cards.length > 0){
+          setOwnedCards(cards);
+          setDeck([]); // user builds their own deck from live inventory
+        } else {
+          setError("No Series 1 cards found in this wallet. Showing demo cards.");
+          setOwnedCards(MOCK_CARDS);
+          setDeck(MOCK_CARDS);
+        }
+      } catch(e){
+        if(!active) return;
+        setError(e?.message || "Failed to load wallet inventory.");
+        setOwnedCards(MOCK_CARDS);
+        setDeck(MOCK_CARDS);
+      } finally {
+        if(active) setInventoryLoading(false);
+      }
+    })();
+    return ()=>{ active=false; };
+  },[walletAccount]);
+
+  const connectWallet = async ()=>{
+    // Last-ditch attempt to init if CDN loaded late
+    tryInitWax();
+    if(!waxRef.current){
+      // Check what's available for diagnostics
+      const diag = [
+        window.__WaxJSClass ? "Bridge: found WaxJS class" : "Bridge: WaxJS class NOT found",
+        window.__waxjsRaw ? "Bridge raw keys: " + Object.keys(window.__waxjsRaw).join(",") : "Bridge raw: empty",
+        typeof waxjs !== "undefined" ? "waxjs global exists (type: " + typeof waxjs + ")" : "waxjs global is undefined",
+      ].join(" | ");
+      setError("WAX Cloud Wallet library issue. " + diag);
+      return;
+    }
+    setWalletLoading(true);
+    setError("");
+    try {
+      const account = await waxRef.current.login();
+      setWalletAccount(account);
+    } catch(e){
+      if(e?.message?.includes("closed") || e?.message?.includes("cancel")){
+        // user cancelled, no error needed
+      } else {
+        setError("Wallet login failed: " + (e?.message || "Unknown error"));
+      }
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const disconnectWallet = ()=>{
+    setWalletAccount(null);
+    setGame(null);
+    // Re-initialize WaxJS for fresh login next time
+    if(typeof waxjs !== "undefined" && waxjs.WaxJS){
+      waxRef.current = new waxjs.WaxJS({ rpcEndpoint: WAX_CONFIG.rpcEndpoint, tryAutoLogin: false });
+    }
+  };
+
+  const opp=OPPONENTS.find(o=>o.id===oppId)||OPPONENTS[0];
+  const dc=countByRarity(deck);
+  const fill=Math.min(100,Math.round(deck.length/DECK_SIZE*100));
+  const pLeft=game?.pp.length??deck.length;
+  const oLeft=game?.op.length??0;
+  const isWar=(game?.tp.length??0)>0;
+  const total=pLeft+oLeft+(game?.tp?.length||0);
+  const pPct=total>0?Math.round(pLeft/total*100):50;
+
+  const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards,opp.strategy))); };
+  const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
+  const toggleCard=(card)=>{
+    setDeck(cur=>{
+      if(cur.some(c=>c.id===card.id))return cur.filter(c=>c.id!==card.id);
+      if(!canAdd(card,cur))return cur;
+      return[...cur,card];
+    });
+  };
+
+  const roundResult=game&&game.cur&&!game.reveal?(()=>{
+    const ps=getCardStrength(game.cur.p),os=getCardStrength(game.cur.o);
+    if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os})</div>;
+    if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins this round! ({ps} vs {os})</div>;
+    return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os})</div>;
+  })():null;
+
+  return(
+    <div className="app">
+      {/* ═══════════ HEADER WITH WALLET ═══════════ */}
+      <div className="header-row">
+        <h1>Blockchain Heroes WAR</h1>
+        <div className="wallet-area">
+          {isConnected ? (
+            <>
+              <button className="btn btn-wallet connected" onClick={disconnectWallet}>
+                Disconnect
+              </button>
+              <span className="badge badge-live">
+                {walletAccount}
+              </span>
+            </>
+          ) : (
+            <button className="btn btn-wallet" onClick={connectWallet} disabled={walletLoading}>
+              {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Connect Wallet"}
+            </button>
+          )}
+          {!isConnected && <span className="badge badge-demo">Demo Inventory</span>}
+        </div>
+      </div>
+
+      {error && <div className="error-banner">{error}</div>}
+      {inventoryLoading && <div className="loading-banner"><span className="spinner"></span> Loading {walletAccount}'s inventory from AtomicAssets...</div>}
+
+      <div className="tabs-list" style={{gridTemplateColumns:"1fr 1fr"}}>
+        <button className={`tab-btn ${tab==="collection"?"active":""}`} onClick={()=>setTab("collection")}>Collection & Deck</button>
+        <button className={`tab-btn ${tab==="battle"?"active":""}`} onClick={()=>setTab("battle")}>Battle</button>
+        {/* Power Registry tab hidden for now — re-enable when ability system is ready */}
+      </div>
+
+      {/* ═══════════ BATTLE TAB ═══════════ */}
+      {tab==="battle"&&<div className="space">
+        <div className="ui-card">
+          <div className="ui-card-title">Choose Opponent</div>
+          <div className="flex-wrap">
+            {OPPONENTS.map(o=><button key={o.id} className={`btn btn-outline ${o.id===oppId?"active-btn":""}`} onClick={()=>setOppId(o.id)}>{o.name}</button>)}
+          </div>
+          <div className="text-sm text-slate mt-2">Facing: {opp.name} — {opp.description}</div>
+        </div>
+        <div className="ui-card" style={{textAlign:"center"}}>
+          <div className="flex-wrap" style={{justifyContent:"center",marginBottom:16}}>
+            <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
+            <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
+          </div>
+          {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:12}}>Go to Collection & Deck to build your deck first.</div>}
+          {game&&<div style={{marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#94a3b8",marginBottom:4}}>
+              <span>You: {pLeft}</span><span>Round {game.round}</span><span>Opp: {oLeft}</span>
+            </div>
+            <div className="score-track"><div className="score-fill" style={{width:pPct+"%"}}/></div>
+          </div>}
+          {isWar&&<div className="war-banner" style={{marginBottom:12}}>WAR! Three cards go down each. The third card decides the pile.</div>}
+          {roundResult}
+          {game?.winner&&<div className="win-text" style={{marginTop:8}}>{game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}</div>}
+        </div>
+        <div className="grid-2">
+          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":"Your card"} warFD={game?.reveal?game?.wfp||[]:[]}/>
+          <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]}/>
+        </div>
+      </div>}
+
+      {/* ═══════════ COLLECTION TAB ═══════════ */}
+      {tab==="collection"&&<div className="space">
+        <div className="ui-card">
+          <div className="ui-card-title">Deck Builder</div>
+          <div className="flex-wrap mb-4">
+            <button className="btn btn-primary" onClick={()=>setDeck(buildDeck(ownedCards))}>Build Deck</button>
+            <span className="text-sm text-slate">One click to build the largest legal deck.</span>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:14,color:"#94a3b8",marginBottom:6}}>
+            <span>{deck.length}/{DECK_SIZE} cards</span><span>{fill}%</span>
+          </div>
+          <div className="progress-track"><div className="progress-fill" style={{width:fill+"%"}}/></div>
+          <div className="grid-5 mt-3">
+            {Object.keys(RARITY_CAPS).map(r=><div key={r} className="rarity-cap-box"><span className={`badge badge-${r}`} style={{fontSize:11}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div></div>)}
+          </div>
+        </div>
+        <div className="text-sm text-slate mb-4" style={{marginBottom:16}}>
+          {isConnected
+            ? `Showing ${ownedCards.length} cards from ${walletAccount}'s inventory.`
+            : "Showing demo inventory. Connect your WAX wallet to load your real cards."}
+        </div>
+        <div className="grid-3">
+          {ownedCards.map(card=>{
+            const inDeck=deck.some(c=>c.id===card.id);
+            const ok=canAdd(card,deck);
+            return(
+              <div key={card.id} className={`collection-card ${inDeck?"in-deck-"+card.rarity:""}`}>
+                {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
+                  <img src={buildImageUrl(card.img)} alt={card.name} style={{width:"100%",height:120,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
+                </div>}
+                <div className={`name-${card.rarity}`} style={{fontSize:18,fontWeight:700}}>{card.name}</div>
+                <div className="flex-wrap mt-2 gap-2">
+                  <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
+                  <span className="badge badge-str">STR: {getCardStrength(card)}</span>
+                  {getHeroPower(card)&&<span className="text-xs" style={{color:"#fde68a"}}>{getHeroPower(card).name}</span>}
+                </div>
+                <button className={`btn ${inDeck?"btn-secondary":"btn-primary"} btn-sm w-full mt-3`} onClick={()=>toggleCard(card)} disabled={!inDeck&&!ok}>
+                  {inDeck?"Remove":"Add to Deck"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>}
+
+      {/* ═══════════ POWERS TAB ═══════════ */}
+      {/* Power Registry tab content — hidden but preserved for future ability system */}
+      {tab==="powers"&&<div className="space">
+        <div className="ui-card">
+          <div className="ui-card-title">Power Registry</div>
+          <div className="text-sm text-slate mb-4">Shows which heroes have powers and whether the power came from a template match or name-based fallback.</div>
+          <div className="grid-3">
+            {ownedCards.map(card=>{
+              const power=getHeroPower(card);
+              const source=HERO_POWERS[String(card.templateId)]?"template":HERO_NAME_POWERS[card.name.trim().toLowerCase()]?"name":"none";
+              return(
+                <div key={card.id} className="collection-card">
+                  {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
+                    <img src={buildImageUrl(card.img)} alt={card.name} style={{width:"100%",height:100,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
+                  </div>}
+                  <div className={`name-${card.rarity}`} style={{fontSize:18,fontWeight:700}}>{card.name}</div>
+                  <div className="flex-wrap mt-2 gap-2">
+                    <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
+                    <span className="badge badge-outline">#{card.templateId}</span>
+                    <span className="badge badge-outline">Source: {source}</span>
+                  </div>
+                  {power?(<div className="power-box mt-3"><div style={{fontWeight:600}}>{power.name}</div><div className="text-xs mt-2">{power.label}</div><div className="text-xs mt-2" style={{opacity:0.8,fontStyle:"italic"}}>{power.flavor}</div></div>)
+                  :(<div className="no-power-box mt-3 text-sm">No power assigned.</div>)}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById("root"));
+</script>
+</body>
+</html>
