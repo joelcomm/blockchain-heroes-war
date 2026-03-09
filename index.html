@@ -906,16 +906,78 @@ function App(){
 
       <div style={{marginBottom:20,padding:"20px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:24}}>
         <div style={{fontSize:24,fontWeight:800,color:"#f1f5f9",marginBottom:8}}>Your Heroes. Your Strategy. Your WAR.</div>
-        <div style={{fontSize:18,color:"#94a3b8",lineHeight:1.6,marginBottom:16}}>Connect your WAX wallet, build a deck from your Blockchain Heroes collection, and battle head-to-head in a 50-round showdown. Every rarity has a role. Every card has a chance to power up. And with limited Boosts and Peeks, the choices you make decide who wins.</div>
+        <div style={{fontSize:18,color:"#94a3b8",lineHeight:1.6,marginBottom:16}}>Connect your WAX wallet, build a deck from your Blockchain Heroes collection, and battle head-to-head in a 50-round showdown. Every rarity has a role. Every card has a chance to power up. And with limited Boosts, Peeks, and Double Downs, the choices you make decide who wins.</div>
         <details style={{cursor:"pointer"}}>
           <summary style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>How to Play</summary>
-          <ol style={{fontSize:18,color:"#cbd5e1",lineHeight:1.8,paddingLeft:24,marginTop:10}}>
-            <li>Connect your WAX Cloud Wallet or Anchor Wallet.</li>
-            <li>Load your Series 1 Blockchain Heroes.<br/><span style={{fontSize:16,color:"#94a3b8"}}>Don't have Blockchain Heroes cards? Try the demo by clicking the checkbox on top.</span></li>
-            <li>Choose your heroes or click <strong>BUILD</strong> to fill your slots.</li>
-            <li>Use your abilities: <strong>Trigger Power</strong> (+1 STR), <strong>Peek</strong> (see opponent's card), and <strong>Double Down</strong> (2x points). Watch out for the opponent's <strong>Counter-Strike</strong> and <strong>Shield</strong>!</li>
-            <li>Missing a hero? Click the <span style={{color:"#f87171"}}>red link</span> to find one on Atomic Marketplace.</li>
-          </ol>
+          <div style={{marginTop:10}}>
+            {/* Getting Started */}
+            <div style={{fontSize:19,fontWeight:700,color:"#f1f5f9",marginBottom:6}}>Getting Started</div>
+            <ol style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li>Connect your <strong>WAX Cloud Wallet</strong> or <strong>Anchor Wallet</strong>.</li>
+              <li>Your Series 1 Blockchain Heroes load automatically.<br/><span style={{fontSize:15,color:"#94a3b8"}}>Don't have cards? Check the <em>"I don't have cards!"</em> box to play with a full demo deck.</span></li>
+              <li>Build your deck manually or click <strong>BUILD</strong> to auto-fill the best 50-card deck.</li>
+              <li>Head to the <strong>Battle</strong> tab and press <strong>Start Match</strong>.</li>
+            </ol>
+
+            {/* Deck Building */}
+            <div style={{fontSize:19,fontWeight:700,color:"#f1f5f9",marginBottom:6}}>Deck Building</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li>Your deck holds up to <strong>50 cards</strong> — one variant per hero.</li>
+              <li>Rarity caps keep decks balanced: <span style={{color:"#fbbf24"}}>Legendary 4</span>, <span style={{color:"#c084fc"}}>Epic 8</span>, <span style={{color:"#60a5fa"}}>Rare 10</span>, <span style={{color:"#4ade80"}}>Uncommon 12</span>, <span style={{color:"#94a3b8"}}>Common 16</span>.</li>
+              <li>Missing a hero? Click the <span style={{color:"#f87171"}}>red link</span> in the checklist to find it on the marketplace.</li>
+            </ul>
+
+            {/* How Rounds Work */}
+            <div style={{fontSize:19,fontWeight:700,color:"#f1f5f9",marginBottom:6}}>How Rounds Work</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li>Each round, both players flip the top card of their deck. The higher <strong>STR</strong> wins the round and claims both cards as points.</li>
+              <li>Card strength is based on rarity: Common 1, Uncommon 2, Rare 3, Epic 4, Legendary 5.</li>
+              <li>On a <strong>tie</strong>, WAR is declared! Three cards go face-down from each side, then a fourth card is flipped — the winner takes the entire pile.</li>
+              <li>The match lasts up to <strong>50 rounds</strong>. If both players still have cards at round 50, the player with more points wins.</li>
+            </ul>
+
+            {/* Hero Powers */}
+            <div style={{fontSize:19,fontWeight:700,color:"#f1f5f9",marginBottom:6}}>Hero Powers</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li>Each hero has a unique named power. Every round, there's a chance the power activates automatically for <strong>+1 STR</strong>.</li>
+              <li>Lower rarity cards have a <em>higher</em> chance to power up: <span style={{color:"#94a3b8"}}>Common 50%</span>, <span style={{color:"#4ade80"}}>Uncommon 35%</span>, <span style={{color:"#60a5fa"}}>Rare 20%</span>, <span style={{color:"#c084fc"}}>Epic 10%</span>, <span style={{color:"#fbbf24"}}>Legendary 5%</span>.</li>
+              <li>This means a Common card with a power activation can beat an Uncommon — every card matters!</li>
+            </ul>
+
+            {/* Your Abilities */}
+            <div style={{fontSize:19,fontWeight:700,color:"#67e8f9",marginBottom:6}}>Your Abilities</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li><strong>⚡ Trigger Power</strong> (5 uses) — Manually boost your card by +1 STR before revealing. Use it to close gaps or secure a win. But beware — the opponent may Counter-Strike!</li>
+              <li><strong>👁️ Peek</strong> (5 uses) — See the opponent's next card before you commit. Knowledge is power. Not available during WAR.</li>
+              <li><strong>🎲 Double Down</strong> (3 uses) — Bet big! Double the points for the current round. Both wins <em>and</em> losses are worth 2x. Pairs well with Peek to know when to risk it.</li>
+            </ul>
+
+            {/* Opponent Abilities */}
+            <div style={{fontSize:19,fontWeight:700,color:"#fda4af",marginBottom:6}}>Opponent Abilities</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li><strong>⚡ Buffs</strong> (5 uses) — The opponent boosts strategically when losing by 1 or tied.</li>
+              <li><strong>⚡ Counter-Strike</strong> (20% chance) — When you use Trigger Power, there's a 20% chance the opponent auto-counters with their own +1 STR. Think twice before boosting!</li>
+              <li><strong>🛡️ Shield</strong> (3 uses) — The opponent can block your round wins. Shields are used strategically on high-value piles and in critical late-game moments. No points are awarded when a Shield activates.</li>
+            </ul>
+
+            {/* Scoring & Winning */}
+            <div style={{fontSize:19,fontWeight:700,color:"#f1f5f9",marginBottom:6}}>Scoring & Winning</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li>You earn <strong>1 point per card captured</strong> (or 2 with Double Down).</li>
+              <li>WAR piles can be worth 8+ points — high stakes moments!</li>
+              <li>The game ends when one player runs out of cards or after 50 rounds — highest score wins.</li>
+              <li>Play with a connected wallet to earn <strong>NFT badges</strong> for achievements!</li>
+            </ul>
+
+            {/* Tips */}
+            <div style={{fontSize:19,fontWeight:700,color:"#fbbf24",marginBottom:6}}>Tips</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:0}}>
+              <li>Use Peek before Double Down — see what you're up against before betting big.</li>
+              <li>Save Trigger Power for close matchups where +1 STR makes the difference.</li>
+              <li>Common cards power up 50% of the time — don't underestimate them!</li>
+              <li>Watch the opponent's charge counts — once they're out of shields and buffs, press your advantage.</li>
+            </ul>
+          </div>
         </details>
       </div>
 
