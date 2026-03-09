@@ -344,11 +344,14 @@ function buildDeck(pool){
 }
 const MAX_CHARGES = 5;
 const MAX_DOUBLES = 3;
-const MAX_SHIELDS = 3;
+const MAX_SHIELDS = 1;
 const COUNTER_STRIKE_CHANCE = 0.20; // 20% chance NPC auto-counters player boost
+const NPC_BUFF_ACCURACY = 0.85; // 85% chance NPC makes optimal buff decision (15% misread)
 function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:MAX_CHARGES, pManualBuff:false, oCharges:MAX_CHARGES, oManualBuff:false, oCounterStrike:false, pPeeks:MAX_CHARGES, pPeeking:false, pDoubleDown:false, pDoubles:MAX_DOUBLES, lastDoubleDown:false, oShields:MAX_SHIELDS, oShieldUsed:false }; }
 function npcDecideBuff(g,pCard,oCard){
   if(g.oCharges<=0)return false;
+  // NPC occasionally misreads the situation (10% chance to skip optimal buff)
+  if(Math.random()>NPC_BUFF_ACCURACY)return false;
   const ps=getCardStrength(pCard)+(g.pManualBuff?1:0);
   const os=getCardStrength(oCard);
   // Boost when losing by 1 (buff ties it) or tied (buff wins it)
@@ -362,16 +365,16 @@ function npcCounterStrike(g){
   if(g.oCharges<=0)return false; // needs charges
   return Math.random()<COUNTER_STRIKE_CHANCE;
 }
-// Shield: NPC strategically blocks a loss (saves it for big piles / critical moments)
+// Shield: NPC strategically reduces a loss (halves points instead of blocking entirely)
 function npcDecideShield(g,ps,os,pile){
   if(g.oShields<=0)return false;
   if(os>=ps)return false; // don't waste shield when not losing
   // Strategic: use shield when pile is large (lots of points at stake)
-  if(pile.length>=6)return true;
+  if(pile.length>=8)return true;
   // Use shield when losing badly on score and this loss would make it worse
-  if(g.oPts<g.pPts&&pile.length>=4)return true;
+  if(g.oPts<g.pPts&&pile.length>=6)return true;
   // Late game: protect when close score and losing
-  if(g.round>=40&&g.oPts<=g.pPts+10)return true;
+  if(g.round>=45&&g.oPts<=g.pPts+5)return true;
   // Save shields otherwise
   return false;
 }
@@ -413,9 +416,10 @@ function resolveRound(g){
   // NPC Shield: strategically block a loss
   const shieldUsed=ps>os&&npcDecideShield(g,ps,os,pile);
   if(shieldUsed){
-    // Shield blocks: cards go back to respective decks (no points awarded), pile is split
-    fp=npp; fo=nop; nt=[];
-    lp=0;
+    // Shield reduces: player still wins the pile but gets half points (rounded down)
+    fp=[...npp,...pile];
+    const halfPts=Math.floor(pile.length*ddMult/2);
+    pPts+=halfPts; lp=halfPts;
   } else if(ps>os){ fp=[...npp,...pile]; pPts+=pile.length*ddMult; lp=pile.length*ddMult; }
   else if(os>ps){ fo=[...nop,...pile]; oPts+=pile.length*ddMult; lp=pile.length*ddMult; }
   else nt=pile; // Tie = WAR, always let it play out (even at round 50)
@@ -838,7 +842,7 @@ function App(){
     if(game.oShieldUsed)extras.push("🛡️ Shield blocked!");
     if(lp>0&&game.lastDoubleDown)extras.push("🎲 Double Down!");
     const extraLine=extras.length>0?<div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginTop:4}}>{extras.join(" ")}</div>:null;
-    if(game.oShieldUsed)return<div className="result-lose text-center slide-up">🛡️ Opponent's Shield blocked your win! ({ps} vs {os}) No points awarded{extraLine}</div>;
+    if(game.oShieldUsed)return<div className="result-win text-center slide-up">🛡️ You win, but Shield halved your points! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os}){extraLine}</div>;
@@ -957,7 +961,7 @@ function App(){
             <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
               <li><strong>⚡ Buffs</strong> (5 uses) — The opponent boosts strategically when losing by 1 or tied.</li>
               <li><strong>⚡ Counter-Strike</strong> (20% chance) — When you use Trigger Power, there's a 20% chance the opponent auto-counters with their own +1 STR. Think twice before boosting!</li>
-              <li><strong>🛡️ Shield</strong> (3 uses) — The opponent can block your round wins. Shields are used strategically on high-value piles and in critical late-game moments. No points are awarded when a Shield activates.</li>
+              <li><strong>🛡️ Shield</strong> (1 use) — The opponent can halve your points on a big win. Saved for high-value piles and critical late-game moments.</li>
             </ul>
 
             {/* Scoring & Winning */}
