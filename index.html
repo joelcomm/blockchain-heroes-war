@@ -396,18 +396,22 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false}){
   const totalBuff=(buffed?1:0)+(manualBuff?1:0);
   const displayStr=baseStr+totalBuff;
   const powerName=card?getHeroPowerName(card):null;
+  const [imgLoaded,setImgLoaded]=useState(false);
+  const imgUrl=card?buildImageUrl(card.img):null;
+  // Reset loaded state when card changes
+  useEffect(()=>{ setImgLoaded(false); },[imgUrl]);
   return(
     <div className="slide-up">
       {label&&<div className="owner-label">{label}</div>}
       {warFD.length>0&&<div style={{marginBottom:10}}><div className="war-facedown-label">WAR face-down cards</div><div className="war-facedown">{warFD.map((c,i)=><img key={i} src={CARD_BACK} alt="facedown"/>)}</div></div>}
       <div className="flip-container">
-        <div className={`flip-inner ${!facedown?"flipped":""} ${!facedown?"glow-"+r:""}`}>
+        <div className={`flip-inner ${!facedown&&imgLoaded?"flipped":""} ${!facedown&&imgLoaded?"glow-"+r:""}`}>
           <div className="flip-face"><img className="card-back" src={CARD_BACK} alt="back"/></div>
           <div className="flip-face flip-back" style={{padding:8}}>
             {card?(<div style={{display:"flex",gap:24,width:"100%",height:"100%",alignItems:"center",padding:"0 8px"}}>
               {/* Left: full card image, fitted to show entire card */}
               <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)"}}>
-                <img src={buildImageUrl(card.img)} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10}} onError={(e)=>{e.target.src=CARD_BACK}} />
+                <img src={imgUrl} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10}} onLoad={()=>setImgLoaded(true)} onError={(e)=>{e.target.src=CARD_BACK;setImgLoaded(true);}} />
               </div>
               {/* Right: name, rarity, strength, power */}
               <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:10,minWidth:0}}>
@@ -451,6 +455,21 @@ function App(){
   }
   const defaultStats={ wins:0, losses:0, ties:0, winStreak:0, bestStreak:0, bestScore:0, worstLoss:0 };
   const [stats,setStats]=useState(defaultStats);
+
+  // --- Player Profile (localStorage) ---
+  function getProfileKey(){ return walletAccount ? "bh_war_profile_"+walletAccount : demoMode ? "bh_war_profile_demo" : null; }
+  function loadProfile(){
+    const k=getProfileKey(); if(!k) return null;
+    try{ const raw=localStorage.getItem(k); return raw?JSON.parse(raw):null; }catch(e){ return null; }
+  }
+  function saveProfile(p){
+    const k=getProfileKey(); if(!k||!p) return;
+    try{ localStorage.setItem(k,JSON.stringify(p)); }catch(e){}
+  }
+  const [username,setUsername]=useState("");
+  const [avatar,setAvatar]=useState(null); // base64 data URL
+  const [editingProfile,setEditingProfile]=useState(false);
+  const avatarInputRef=useRef(null);
 
   // Wallet state
   const [demoMode,setDemoMode]=useState(false);
@@ -687,11 +706,43 @@ function App(){
     } catch(e){ console.error("Badge mint failed:", e); }
   }
 
-  // Load stats when account changes
+  // Load stats + profile when account changes
   useEffect(()=>{
     const saved=loadStats();
     setStats(saved||{...defaultStats});
+    const prof=loadProfile();
+    setUsername(prof?.username||"");
+    setAvatar(prof?.avatar||null);
+    setEditingProfile(false);
   },[walletAccount,demoMode]);
+
+  const handleAvatarUpload=(e)=>{
+    const file=e.target.files?.[0];
+    if(!file) return;
+    if(file.size>500000){ alert("Image too large. Please use an image under 500KB."); return; }
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      const img=new Image();
+      img.onload=()=>{
+        // Resize to max 120x120
+        const canvas=document.createElement("canvas");
+        const scale=Math.min(120/img.width,120/img.height,1);
+        canvas.width=img.width*scale;
+        canvas.height=img.height*scale;
+        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+        const dataUrl=canvas.toDataURL("image/jpeg",0.8);
+        setAvatar(dataUrl);
+        saveProfile({username,avatar:dataUrl});
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const saveUsername=(val)=>{
+    setUsername(val);
+    saveProfile({username:val,avatar});
+  };
 
   // Track game completion for achievements + stats
   useEffect(()=>{
@@ -777,6 +828,35 @@ function App(){
           </div>
         </div>
       </div>
+
+      {/* ═══════════ PLAYER PROFILE ═══════════ */}
+      {isConnected && <div style={{marginBottom:16,padding:"16px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+        <div style={{position:"relative",width:80,height:80,flexShrink:0}}>
+          {avatar ? (
+            <img src={avatar} alt="avatar" style={{width:80,height:80,borderRadius:"50%",objectFit:"cover",border:"3px solid rgba(255,255,255,0.2)"}}/>
+          ) : (
+            <div style={{width:80,height:80,borderRadius:"50%",background:"rgba(255,255,255,0.08)",border:"3px dashed rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:"#64748b",textAlign:"center",cursor:"pointer"}} onClick={()=>avatarInputRef.current?.click()}>No Avatar</div>
+          )}
+          <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} style={{display:"none"}}/>
+        </div>
+        <div style={{flex:1,minWidth:200}}>
+          {editingProfile ? (
+            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+              <input type="text" value={username} onChange={(e)=>setUsername(e.target.value)} placeholder="Enter username" maxLength={24} style={{fontSize:20,padding:"8px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,0.2)",background:"rgba(0,0,0,0.3)",color:"#f1f5f9",outline:"none",width:200}}/>
+              <button className="btn btn-sm" onClick={()=>{ saveUsername(username); setEditingProfile(false); }} style={{fontSize:16,padding:"8px 16px"}}>Save</button>
+              <button className="btn btn-sm" onClick={()=>avatarInputRef.current?.click()} style={{fontSize:16,padding:"8px 16px"}}>Upload Avatar</button>
+            </div>
+          ) : (
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div>
+                <div style={{fontSize:22,fontWeight:700,color:"#f1f5f9"}}>{username||"Anonymous Hero"}</div>
+                <div style={{fontSize:15,color:"#64748b"}}>{walletAccount||"Demo Player"}</div>
+              </div>
+              <button className="btn btn-sm" onClick={()=>setEditingProfile(true)} style={{fontSize:14,padding:"4px 12px",opacity:0.7}}>Edit</button>
+            </div>
+          )}
+        </div>
+      </div>}
 
       <div style={{marginBottom:20,padding:"20px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:24}}>
         <div style={{fontSize:24,fontWeight:800,color:"#f1f5f9",marginBottom:8}}>Your Heroes. Your Strategy. Your WAR.</div>
