@@ -567,7 +567,7 @@ function App(){
   const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards))); };
   const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
-  const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0)return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
+  const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
   const toggleCard=(card)=>{
     setDeck(cur=>{
       if(cur.some(c=>c.id===card.id))return cur.filter(c=>c.id!==card.id);
@@ -608,6 +608,21 @@ function App(){
         </div>
       </div>
 
+      <div style={{marginBottom:20,padding:"20px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:24}}>
+        <div style={{fontSize:22,fontWeight:800,color:"#f1f5f9",marginBottom:8}}>Your Heroes. Your Strategy. Your WAR.</div>
+        <div style={{fontSize:16,color:"#94a3b8",lineHeight:1.6,marginBottom:16}}>Connect your WAX wallet, build a deck from your Blockchain Heroes collection, and battle head-to-head in a 50-round showdown. Every rarity has a role. Every card has a chance to power up. And with limited Boosts and Peeks, the choices you make decide who wins.</div>
+        <details style={{cursor:"pointer"}}>
+          <summary style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:8}}>How to Play</summary>
+          <ol style={{fontSize:16,color:"#cbd5e1",lineHeight:1.8,paddingLeft:24,marginTop:10}}>
+            <li>Connect your WAX Cloud Wallet.</li>
+            <li>Load your Series 1 Blockchain Heroes.</li>
+            <li>Choose your heroes or click <strong>BUILD</strong> to fill your slots.</li>
+            <li>Use your special abilities strategically to win.</li>
+            <li>Missing a hero? Click the <span style={{color:"#f87171"}}>red link</span> to find one on Atomic Marketplace.</li>
+          </ol>
+        </details>
+      </div>
+
       {error && <div className="error-banner">{error}</div>}
       {inventoryLoading && <div className="loading-banner"><span className="spinner"></span> Loading {walletAccount}'s inventory from AtomicAssets...</div>}
 
@@ -641,7 +656,7 @@ function App(){
             </div>
             <div style={{padding:16,background:"rgba(34,211,238,0.08)",border:"1px solid rgba(34,211,238,0.3)",borderRadius:16}}>
               <div style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:8}}>Peek</div>
-              <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0} style={{background:game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:16,padding:"10px 20px",marginBottom:10}}>{game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
+              <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:16,padding:"10px 20px",marginBottom:10}}>{isWar?"No peek in WAR":game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
                 {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:20}}>{i<game.pPeeks?"\u2705":"\u274C"}</span>)}
               </div>
