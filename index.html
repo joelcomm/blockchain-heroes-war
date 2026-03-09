@@ -342,13 +342,16 @@ function buildDeck(pool){
   }
   return [...picks.values()];
 }
-const MAX_CHARGES = 5;
-const MAX_DOUBLES = 3;
-const MAX_SHIELDS = 3;
-const COUNTER_STRIKE_CHANCE = 0.20; // 20% chance NPC auto-counters player boost
-function createGame(pDeck,oDeck){ return { pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:MAX_CHARGES, pManualBuff:false, oCharges:MAX_CHARGES, oManualBuff:false, oCounterStrike:false, pPeeks:MAX_CHARGES, pPeeking:false, pDoubleDown:false, pDoubles:MAX_DOUBLES, lastDoubleDown:false, oShields:MAX_SHIELDS, oShieldUsed:false }; }
+const DIFFICULTY_PRESETS = {
+  easy:   { shields:0, shieldEffect:"halve", buffAccuracy:0.70, counterStrike:0.10, doubles:5, charges:5, peeks:5, label:"Easy",   color:"#4ade80" },
+  normal: { shields:1, shieldEffect:"halve", buffAccuracy:0.85, counterStrike:0.20, doubles:3, charges:5, peeks:5, label:"Normal", color:"#67e8f9" },
+  hard:   { shields:3, shieldEffect:"block", buffAccuracy:1.00, counterStrike:0.30, doubles:2, charges:4, peeks:3, label:"Hard",   color:"#f87171" }
+};
+function createGame(pDeck,oDeck,cfg){ return { cfg, pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:cfg.charges, pManualBuff:false, oCharges:cfg.charges, oManualBuff:false, oCounterStrike:false, pPeeks:cfg.peeks, pPeeking:false, pDoubleDown:false, pDoubles:cfg.doubles, lastDoubleDown:false, oShields:cfg.shields, oShieldUsed:false }; }
 function npcDecideBuff(g,pCard,oCard){
   if(g.oCharges<=0)return false;
+  // NPC occasionally misreads the situation based on difficulty
+  if(Math.random()>g.cfg.buffAccuracy)return false;
   const ps=getCardStrength(pCard)+(g.pManualBuff?1:0);
   const os=getCardStrength(oCard);
   // Boost when losing by 1 (buff ties it) or tied (buff wins it)
@@ -356,22 +359,22 @@ function npcDecideBuff(g,pCard,oCard){
   if(os===ps)return true;
   return false;
 }
-// Counter-Strike: 20% chance NPC auto-counters when player uses Trigger Power
+// Counter-Strike: NPC auto-counters when player uses Trigger Power (chance based on difficulty)
 function npcCounterStrike(g){
   if(!g.pManualBuff)return false; // only triggers when player boosted
   if(g.oCharges<=0)return false; // needs charges
-  return Math.random()<COUNTER_STRIKE_CHANCE;
+  return Math.random()<g.cfg.counterStrike;
 }
-// Shield: NPC strategically blocks a loss (saves it for big piles / critical moments)
+// Shield: NPC strategically reduces a loss (halves or blocks points based on difficulty)
 function npcDecideShield(g,ps,os,pile){
   if(g.oShields<=0)return false;
   if(os>=ps)return false; // don't waste shield when not losing
   // Strategic: use shield when pile is large (lots of points at stake)
-  if(pile.length>=6)return true;
+  if(pile.length>=8)return true;
   // Use shield when losing badly on score and this loss would make it worse
-  if(g.oPts<g.pPts&&pile.length>=4)return true;
+  if(g.oPts<g.pPts&&pile.length>=6)return true;
   // Late game: protect when close score and losing
-  if(g.round>=40&&g.oPts<=g.pPts+10)return true;
+  if(g.round>=45&&g.oPts<=g.pPts+5)return true;
   // Save shields otherwise
   return false;
 }
@@ -410,12 +413,12 @@ function resolveRound(g){
   const rd=inWar?g.round:g.round+1;
   // Double Down multiplier (applies to whoever wins this round's points)
   const ddMult=g.pDoubleDown?2:1;
-  // NPC Shield: strategically block a loss
+  // NPC Shield: strategically block a loss (effect depends on difficulty)
   const shieldUsed=ps>os&&npcDecideShield(g,ps,os,pile);
   if(shieldUsed){
-    // Shield blocks: cards go back to respective decks (no points awarded), pile is split
-    fp=npp; fo=nop; nt=[];
-    lp=0;
+    fp=[...npp,...pile];
+    if(g.cfg.shieldEffect==="block"){ lp=0; }
+    else{ const halfPts=Math.floor(pile.length*ddMult/2); pPts+=halfPts; lp=halfPts; }
   } else if(ps>os){ fp=[...npp,...pile]; pPts+=pile.length*ddMult; lp=pile.length*ddMult; }
   else if(os>ps){ fo=[...nop,...pile]; oPts+=pile.length*ddMult; lp=pile.length*ddMult; }
   else nt=pile; // Tie = WAR, always let it play out (even at round 50)
@@ -424,7 +427,7 @@ function resolveRound(g){
   else if(!fp.length)w="opponent";
   else if(!fo.length)w="player";
   else if(rd>=MAX_ROUNDS&&nt.length===0)w=pPts>oPts?"player":oPts>pPts?"opponent":"tie";
-  return{pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges:g.pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks:g.pPeeks,pPeeking:false,pDoubleDown:false,pDoubles:g.pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed};
+  return{cfg:g.cfg,pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges:g.pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks:g.pPeeks,pPeeking:false,pDoubleDown:false,pDoubles:g.pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed};
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
@@ -481,6 +484,8 @@ function App(){
   const [oppId,setOppId]=useState("collector");
   const [game,setGame]=useState(null);
   const [badgeNotif,setBadgeNotif]=useState(null);
+  const [difficulty,setDifficulty]=useState(()=>{ try{ return localStorage.getItem("bh_war_difficulty")||"normal"; }catch(e){ return "normal"; } });
+  const saveDifficulty=(d)=>{ setDifficulty(d); try{ localStorage.setItem("bh_war_difficulty",d); }catch(e){} };
 
   // --- Persistent Stats (localStorage per account) ---
   function getStatsKey(){ return walletAccount ? "bh_war_stats_"+walletAccount : demoMode ? "bh_war_stats_demo" : null; }
@@ -817,7 +822,7 @@ function App(){
   const totalPts=(game?.pPts??0)+(game?.oPts??0);
   const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
-  const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards))); };
+  const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards),DIFFICULTY_PRESETS[difficulty])); };
   const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
   const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
@@ -838,7 +843,7 @@ function App(){
     if(game.oShieldUsed)extras.push("🛡️ Shield blocked!");
     if(lp>0&&game.lastDoubleDown)extras.push("🎲 Double Down!");
     const extraLine=extras.length>0?<div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginTop:4}}>{extras.join(" ")}</div>:null;
-    if(game.oShieldUsed)return<div className="result-lose text-center slide-up">🛡️ Opponent's Shield blocked your win! ({ps} vs {os}) No points awarded{extraLine}</div>;
+    if(game.oShieldUsed)return<div className="result-win text-center slide-up">🛡️ You win, but Shield {game.cfg.shieldEffect==="block"?"blocked all":"halved"} your points! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os}){extraLine}</div>;
@@ -944,20 +949,28 @@ function App(){
               <li>This means a Common card with a power activation can beat an Uncommon — every card matters!</li>
             </ul>
 
+            {/* Difficulty */}
+            <div style={{fontSize:19,fontWeight:700,color:"#e879f9",marginBottom:6}}>Difficulty Levels</div>
+            <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
+              <li><strong style={{color:"#4ade80"}}>Easy</strong> — No shields, weaker opponent AI, more Double Downs and abilities for you.</li>
+              <li><strong style={{color:"#67e8f9"}}>Normal</strong> — Balanced play with 1 shield (halves points), smart opponent, standard abilities.</li>
+              <li><strong style={{color:"#f87171"}}>Hard</strong> — 3 shields (block all points), perfect opponent AI, stronger counters, fewer abilities for you.</li>
+            </ul>
+
             {/* Your Abilities */}
             <div style={{fontSize:19,fontWeight:700,color:"#67e8f9",marginBottom:6}}>Your Abilities</div>
             <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
-              <li><strong>⚡ Trigger Power</strong> (5 uses) — Manually boost your card by +1 STR before revealing. Use it to close gaps or secure a win. But beware — the opponent may Counter-Strike!</li>
-              <li><strong>👁️ Peek</strong> (5 uses) — See the opponent's next card before you commit. Knowledge is power. Not available during WAR.</li>
-              <li><strong>🎲 Double Down</strong> (3 uses) — Bet big! Double the points for the current round. Both wins <em>and</em> losses are worth 2x. Pairs well with Peek to know when to risk it.</li>
+              <li><strong>⚡ Trigger Power</strong> — Manually boost your card by +1 STR before revealing. Use it to close gaps or secure a win. But beware — the opponent may Counter-Strike!</li>
+              <li><strong>👁️ Peek</strong> — See the opponent's next card before you commit. Knowledge is power. Not available during WAR.</li>
+              <li><strong>🎲 Double Down</strong> — Bet big! Double the points for the current round. Both wins <em>and</em> losses are worth 2x. Pairs well with Peek to know when to risk it.</li>
             </ul>
 
             {/* Opponent Abilities */}
             <div style={{fontSize:19,fontWeight:700,color:"#fda4af",marginBottom:6}}>Opponent Abilities</div>
             <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
-              <li><strong>⚡ Buffs</strong> (5 uses) — The opponent boosts strategically when losing by 1 or tied.</li>
-              <li><strong>⚡ Counter-Strike</strong> (20% chance) — When you use Trigger Power, there's a 20% chance the opponent auto-counters with their own +1 STR. Think twice before boosting!</li>
-              <li><strong>🛡️ Shield</strong> (3 uses) — The opponent can block your round wins. Shields are used strategically on high-value piles and in critical late-game moments. No points are awarded when a Shield activates.</li>
+              <li><strong>⚡ Buffs</strong> — The opponent boosts strategically when losing by 1 or tied. Accuracy depends on difficulty.</li>
+              <li><strong>⚡ Counter-Strike</strong> — When you use Trigger Power, the opponent may auto-counter with their own +1 STR. Chance varies by difficulty.</li>
+              <li><strong>🛡️ Shield</strong> — The opponent can reduce or block your points on a big win. Number of uses and effect depend on difficulty.</li>
             </ul>
 
             {/* Scoring & Winning */}
@@ -994,6 +1007,12 @@ function App(){
       {/* ═══════════ BATTLE TAB ═══════════ */}
       {tab==="battle"&&<div className="space">
         <div className="ui-card" style={{textAlign:"center"}}>
+          {/* Difficulty selector — only when no active game */}
+          {(!game||game.winner)&&<div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:16,alignItems:"center"}}>
+            <span style={{fontSize:16,fontWeight:700,color:"#94a3b8",marginRight:4}}>Difficulty:</span>
+            {Object.entries(DIFFICULTY_PRESETS).map(([key,cfg])=><button key={key} className="btn" onClick={()=>saveDifficulty(key)} style={{background:difficulty===key?cfg.color+"22":"transparent",border:"2px solid "+(difficulty===key?cfg.color:"rgba(255,255,255,0.12)"),color:difficulty===key?cfg.color:"#64748b",fontSize:17,fontWeight:difficulty===key?800:600,padding:"8px 22px",borderRadius:14,transition:"all .2s"}}>{cfg.label}</button>)}
+          </div>}
+          {game&&!game.winner&&<div style={{display:"flex",justifyContent:"center",marginBottom:8}}><span className="badge" style={{background:game.cfg.color+"22",color:game.cfg.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+game.cfg.color+"44"}}>{game.cfg.label} Mode</span></div>}
           <div className="flex-wrap" style={{justifyContent:"center",marginBottom:16}}>
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
@@ -1012,21 +1031,21 @@ function App(){
               <div style={{fontSize:20,fontWeight:700,color:"#a5b4fc",marginBottom:8}}>⚡ Trigger Power</div>
               <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pManualBuff?"Activated!":game.pCharges>0?"Boost +1 STR":"No charges"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pCharges?"✅":"❌"}</span>)}
+                {Array.from({length:game.cfg.charges}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pCharges?"✅":"❌"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(34,211,238,0.08)",border:"1px solid rgba(34,211,238,0.3)",borderRadius:16}}>
               <div style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>👁️ Peek</div>
               <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{isWar?"No peek in WAR":game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pPeeks?"✅":"❌"}</span>)}
+                {Array.from({length:game.cfg.peeks}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pPeeks?"✅":"❌"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(250,204,21,0.08)",border:"1px solid rgba(250,204,21,0.3)",borderRadius:16}}>
               <div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginBottom:8}}>🎲 Double Down</div>
               <button className="btn" onClick={doubleDown} disabled={!game||game.winner||game.reveal||game.pDoubleDown||game.pDoubles<=0} style={{background:game.pDoubleDown?"#059669":game.pDoubles>0?"#d97706":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pDoubleDown?"Doubled!":game.pDoubles>0?"2x Points":"No doubles"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_DOUBLES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pDoubles?"✅":"❌"}</span>)}
+                {Array.from({length:game.cfg.doubles}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pDoubles?"✅":"❌"}</span>)}
               </div>
             </div>
           </div>
@@ -1036,20 +1055,20 @@ function App(){
               <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>⚡ Buffs</div>
               <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oCharges} remaining</div>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oCharges?"✅":"❌"}</span>)}
+                {Array.from({length:game.cfg.charges}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oCharges?"✅":"❌"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
               <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>⚡ Counter-Strike</div>
-              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>20% counter chance</div>
+              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{Math.round(game.cfg.counterStrike*100)}% counter chance</div>
               <div style={{fontSize:15,color:"#64748b",textAlign:"center"}}>Auto-triggers when you boost</div>
             </div>
             <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
               <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>🛡️ Shield</div>
-              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oShields} remaining</div>
-              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_SHIELDS}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oShields?"✅":"❌"}</span>)}
-              </div>
+              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.cfg.shields>0?game.oShields+" remaining ("+game.cfg.shieldEffect+"s pts)":"None"}</div>
+              {game.cfg.shields>0&&<div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
+                {Array.from({length:game.cfg.shields}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oShields?"✅":"❌"}</span>)}
+              </div>}
             </div>
           </div>
           </>}
