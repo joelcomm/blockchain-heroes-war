@@ -438,7 +438,19 @@ function App(){
   const [oppId,setOppId]=useState("collector");
   const [game,setGame]=useState(null);
   const [badgeNotif,setBadgeNotif]=useState(null);
-  const [matchesPlayed,setMatchesPlayed]=useState(0);
+
+  // --- Persistent Stats (localStorage per account) ---
+  function getStatsKey(){ return walletAccount ? "bh_war_stats_"+walletAccount : demoMode ? "bh_war_stats_demo" : null; }
+  function loadStats(){
+    const k=getStatsKey(); if(!k) return null;
+    try{ const raw=localStorage.getItem(k); return raw?JSON.parse(raw):null; }catch(e){ return null; }
+  }
+  function saveStats(s){
+    const k=getStatsKey(); if(!k||!s) return;
+    try{ localStorage.setItem(k,JSON.stringify(s)); }catch(e){}
+  }
+  const defaultStats={ wins:0, losses:0, ties:0, winStreak:0, bestStreak:0, bestScore:0, worstLoss:0 };
+  const [stats,setStats]=useState(defaultStats);
 
   // Wallet state
   const [demoMode,setDemoMode]=useState(false);
@@ -675,10 +687,33 @@ function App(){
     } catch(e){ console.error("Badge mint failed:", e); }
   }
 
-  // Track game completion for achievements
+  // Load stats when account changes
+  useEffect(()=>{
+    const saved=loadStats();
+    setStats(saved||{...defaultStats});
+  },[walletAccount,demoMode]);
+
+  // Track game completion for achievements + stats
   useEffect(()=>{
     if(!game?.winner) return;
-    setMatchesPlayed(n=>n+1);
+    setStats(prev=>{
+      const s={...prev};
+      const won=game.winner==="player";
+      const lost=game.winner==="opponent";
+      const tied=game.winner==="tie";
+      if(won){ s.wins++; s.winStreak++; s.bestStreak=Math.max(s.bestStreak,s.winStreak); }
+      if(lost){ s.losses++; s.winStreak=0; }
+      if(tied){ s.ties++; s.winStreak=0; }
+      // Best score = highest player points in a game
+      if(game.pPts>s.bestScore) s.bestScore=game.pPts;
+      // Worst loss = biggest point deficit when losing
+      if(lost){
+        const deficit=game.oPts-game.pPts;
+        if(deficit>s.worstLoss) s.worstLoss=deficit;
+      }
+      saveStats(s);
+      return s;
+    });
     // First match badge
     mintBadge("first_match");
   },[game?.winner]);
@@ -821,6 +856,42 @@ function App(){
             return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff}/>;
           })()}
         </div>
+        {/* Stats Panel */}
+        <div className="ui-card" style={{marginTop:16}}>
+          <div className="ui-card-title">Player Stats</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,textAlign:"center"}}>
+            <div style={{padding:12,background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#4ade80"}}>{stats.wins}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Wins</div>
+            </div>
+            <div style={{padding:12,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.2)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#f87171"}}>{stats.losses}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Losses</div>
+            </div>
+            <div style={{padding:12,background:"rgba(250,204,21,0.08)",border:"1px solid rgba(250,204,21,0.2)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#facc15"}}>{stats.ties}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Ties</div>
+            </div>
+            <div style={{padding:12,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(129,140,248,0.2)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#a5b4fc"}}>{stats.winStreak}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Win Streak</div>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginTop:12,textAlign:"center"}}>
+            <div style={{padding:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#e2e8f0"}}>{stats.bestStreak}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Best Streak</div>
+            </div>
+            <div style={{padding:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#e2e8f0"}}>{stats.bestScore}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Best Score</div>
+            </div>
+            <div style={{padding:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12}}>
+              <div style={{fontSize:28,fontWeight:800,color:"#e2e8f0"}}>{stats.worstLoss>0?"-"+stats.worstLoss:"—"}</div>
+              <div style={{fontSize:16,color:"#94a3b8"}}>Worst Loss</div>
+            </div>
+          </div>
+        </div>
       </div>}
 
       {/* ═══════════ COLLECTION TAB ═══════════ */}
@@ -841,6 +912,7 @@ function App(){
         </div>
         <div className="ui-card" style={{marginBottom:16}}>
           <div className="ui-card-title">Hero Checklist ({deck.length}/{DECK_SIZE})</div>
+          <div style={{fontSize:16,color:"#94a3b8",marginBottom:12}}>Missing a hero? Click the <span style={{color:"#f87171"}}>red link</span> to view marketplace.</div>
           {(()=>{
             const deckHeroes=new Set(deck.map(c=>getHeroKey(c)));
             const ownedHeroes=new Set(ownedCards.map(c=>getHeroKey(c)));
