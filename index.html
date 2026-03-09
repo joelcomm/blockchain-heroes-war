@@ -31,17 +31,17 @@
   }
   .app { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
   h1 {
-    font-size: 2.4rem; font-weight: 800;
+    font-size: 2.6rem; font-weight: 800;
     background: linear-gradient(to right, #67e8f9, #f0abfc, #fde68a);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   .tabs-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 4px; margin: 20px 0; }
-  .tab-btn { padding: 12px; border: none; border-radius: 12px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; font-size: 18px; transition: all 0.2s; }
+  .tab-btn { padding: 12px; border: none; border-radius: 12px; background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer; font-size: 20px; transition: all 0.2s; }
   .tab-btn.active { background: rgba(255,255,255,0.12); color: #f1f5f9; }
   .tab-btn:hover { color: #e2e8f0; }
   .ui-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; margin-bottom: 20px; backdrop-filter: blur(12px); }
-  .ui-card-title { font-size: 26px; font-weight: 700; margin-bottom: 16px; }
-  .btn { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 600; font-size: 18px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+  .ui-card-title { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
+  .btn { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 600; font-size: 20px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
   .btn-primary { background: #6366f1; color: white; }
   .btn-primary:hover { background: #818cf8; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -55,8 +55,8 @@
   .btn-outline.active-btn { background: #6366f1; color: white; border-color: #6366f1; }
   .btn-secondary { background: rgba(255,255,255,0.1); color: #e2e8f0; }
   .btn-secondary:hover { background: rgba(255,255,255,0.18); }
-  .btn-sm { padding: 10px 16px; font-size: 16px; }
-  .badge { display: inline-flex; padding: 5px 14px; border-radius: 9999px; font-size: 16px; font-weight: 600; border: 1px solid; }
+  .btn-sm { padding: 10px 16px; font-size: 18px; }
+  .badge { display: inline-flex; padding: 5px 14px; border-radius: 9999px; font-size: 18px; font-weight: 600; border: 1px solid; }
   .badge-legendary { background: rgba(251,191,36,0.2); color: #fde68a; border-color: rgba(251,191,36,0.4); }
   .badge-epic { background: rgba(168,85,247,0.2); color: #d8b4fe; border-color: rgba(168,85,247,0.4); }
   .badge-rare { background: rgba(34,211,238,0.2); color: #a5f3fc; border-color: rgba(34,211,238,0.4); }
@@ -76,8 +76,8 @@
   .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
   .flex-wrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .w-full { width: 100%; }
-  .text-sm { font-size: 18px; }
-  .text-xs { font-size: 16px; }
+  .text-sm { font-size: 20px; }
+  .text-xs { font-size: 18px; }
   .text-center { text-align: center; }
   .text-slate { color: #94a3b8; }
   .mt-2 { margin-top: 8px; }
@@ -107,7 +107,7 @@
   .str-circle {
     width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
     display: flex; align-items: center; justify-content: center;
-    font-size: 48px; font-weight: 900; color: white; margin: 16px auto;
+    font-size: 50px; font-weight: 900; color: white; margin: 16px auto;
   }
   .str-legendary { border-color: rgba(251,191,36,0.6); box-shadow: 0 0 30px rgba(251,191,36,0.25); background: rgba(251,191,36,0.1); }
   .str-epic { border-color: rgba(168,85,247,0.6); box-shadow: 0 0 30px rgba(168,85,247,0.25); background: rgba(168,85,247,0.1); }
@@ -119,21 +119,21 @@
   .name-rare { color: #22d3ee; }
   .name-uncommon { color: #34d399; }
   .name-common { color: #94a3b8; }
-  .war-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 14px 18px; text-align: center; font-weight: 600; font-size: 20px; color: #fecdd3; animation: pulse-glow 1.2s ease-in-out infinite; }
+  .war-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 14px 18px; text-align: center; font-weight: 600; font-size: 22px; color: #fecdd3; animation: pulse-glow 1.2s ease-in-out infinite; }
   @keyframes pulse-glow { 0%,100%{opacity:1} 50%{opacity:0.7} }
-  .win-text { font-size: 36px; font-weight: 800; color: #fde68a; animation: winGlow 1.5s ease-in-out infinite; }
+  .win-text { font-size: 38px; font-weight: 800; color: #fde68a; animation: winGlow 1.5s ease-in-out infinite; }
   @keyframes winGlow { 0%,100%{text-shadow:0 0 20px rgba(251,191,36,0.4)} 50%{text-shadow:0 0 40px rgba(251,191,36,0.8)} }
-  .result-win { color: #6ee7b7; font-weight: 700; font-size: 24px; }
-  .result-lose { color: #fda4af; font-weight: 700; font-size: 24px; }
-  .result-tie { color: #fde68a; font-weight: 700; font-size: 24px; }
+  .result-win { color: #6ee7b7; font-weight: 700; font-size: 26px; }
+  .result-lose { color: #fda4af; font-weight: 700; font-size: 26px; }
+  .result-tie { color: #fde68a; font-weight: 700; font-size: 26px; }
   @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
   .slide-up { animation: slideUp 0.35s ease-out; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
   .war-facedown { display: flex; justify-content: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; }
   .war-facedown img { height: 100px; width: 70px; object-fit: contain; border-radius: 10px; background: #000; }
-  .war-facedown-label { text-align: center; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
-  .owner-label { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; text-align: center; font-size: 20px; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
+  .war-facedown-label { text-align: center; font-size: 17px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
+  .owner-label { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; text-align: center; font-size: 22px; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
   .collection-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 16px; transition: all 0.2s; }
   .collection-card.in-deck-legendary { box-shadow: 0 0 30px rgba(251,191,36,0.25); border-color: rgba(251,191,36,0.4); }
   .collection-card.in-deck-epic { box-shadow: 0 0 25px rgba(168,85,247,0.22); border-color: rgba(168,85,247,0.4); }
@@ -145,14 +145,14 @@
   .rarity-cap-box { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 10px; text-align: center; }
   .header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
   .wallet-area { display: flex; align-items: center; gap: 10px; }
-  .error-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; font-size: 18px; color: #fecdd3; margin-bottom: 16px; }
-  .loading-banner { background: rgba(99,102,241,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 16px; padding: 12px 16px; font-size: 18px; color: #c7d2fe; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .error-banner { background: rgba(244,63,94,0.1); border: 1px solid rgba(251,113,133,0.3); border-radius: 16px; padding: 12px 16px; font-size: 20px; color: #fecdd3; margin-bottom: 16px; }
+  .loading-banner { background: rgba(99,102,241,0.1); border: 1px solid rgba(129,140,248,0.3); border-radius: 16px; padding: 12px 16px; font-size: 20px; color: #c7d2fe; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
   @media (max-width: 640px) {
     .grid-2 { grid-template-columns: 1fr; }
     .grid-5 { grid-template-columns: repeat(3, 1fr); }
-    h1 { font-size: 1.5rem; }
+    h1 { font-size: 1.7rem; }
     .flip-inner { height: 320px; }
-    .str-circle { width: 90px; height: 90px; font-size: 38px; }
+    .str-circle { width: 90px; height: 90px; font-size: 40px; }
     .wallet-area { flex-wrap: wrap; }
   }
 </style>
@@ -390,16 +390,16 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false}){
               </div>
               {/* Right: name, rarity, strength, power */}
               <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:10,minWidth:0}}>
-                <div className={`name-${r}`} style={{fontSize:28,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
+                <div className={`name-${r}`} style={{fontSize:30,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                   <span className={`badge badge-${r}`}>{titleCase(r)}</span>
                 </div>
-                <div className={`str-circle str-${r}`} style={{width:80,height:80,fontSize:34,margin:0}}>{displayStr}</div>
-                <div style={{fontSize:16,color:"#94a3b8"}}>STR: {displayStr}{totalBuff>0?` (${baseStr}+${totalBuff})`:""}</div>
-                {buffed&&powerName&&<div style={{fontSize:18,padding:"8px 12px",borderRadius:10,background:"rgba(74,222,128,0.15)",border:"2px solid rgba(74,222,128,0.5)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:15,opacity:0.9}}>Power activated! +1 STR</span></div>}
-                {manualBuff&&<div style={{fontSize:18,padding:"8px 12px",borderRadius:10,background:"rgba(99,102,241,0.15)",border:"2px solid rgba(129,140,248,0.5)",color:"#a5b4fc",fontWeight:700}}>Trigger Power!<br/><span style={{fontWeight:400,fontSize:15,opacity:0.9}}>Manual boost! +1 STR</span></div>}
-                {!buffed&&!manualBuff&&powerName&&<div style={{fontSize:14,color:"#64748b"}}>{powerName}</div>}
-                <div style={{fontSize:12,color:"#64748b"}}>#{card.templateId}</div>
+                <div className={`str-circle str-${r}`} style={{width:80,height:80,fontSize:36,margin:0}}>{displayStr}</div>
+                <div style={{fontSize:18,color:"#94a3b8"}}>STR: {displayStr}{totalBuff>0?` (${baseStr}+${totalBuff})`:""}</div>
+                {buffed&&powerName&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(74,222,128,0.15)",border:"2px solid rgba(74,222,128,0.5)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Power activated! +1 STR</span></div>}
+                {manualBuff&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(99,102,241,0.15)",border:"2px solid rgba(129,140,248,0.5)",color:"#a5b4fc",fontWeight:700}}>Trigger Power!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Manual boost! +1 STR</span></div>}
+                {!buffed&&!manualBuff&&powerName&&<div style={{fontSize:16,color:"#64748b"}}>{powerName}</div>}
+                <div style={{fontSize:14,color:"#64748b"}}>#{card.templateId}</div>
               </div>
             </div>):(<img className="card-back" src={CARD_BACK} alt="back"/>)}
           </div>
@@ -609,11 +609,11 @@ function App(){
       </div>
 
       <div style={{marginBottom:20,padding:"20px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:24}}>
-        <div style={{fontSize:22,fontWeight:800,color:"#f1f5f9",marginBottom:8}}>Your Heroes. Your Strategy. Your WAR.</div>
-        <div style={{fontSize:16,color:"#94a3b8",lineHeight:1.6,marginBottom:16}}>Connect your WAX wallet, build a deck from your Blockchain Heroes collection, and battle head-to-head in a 50-round showdown. Every rarity has a role. Every card has a chance to power up. And with limited Boosts and Peeks, the choices you make decide who wins.</div>
+        <div style={{fontSize:24,fontWeight:800,color:"#f1f5f9",marginBottom:8}}>Your Heroes. Your Strategy. Your WAR.</div>
+        <div style={{fontSize:18,color:"#94a3b8",lineHeight:1.6,marginBottom:16}}>Connect your WAX wallet, build a deck from your Blockchain Heroes collection, and battle head-to-head in a 50-round showdown. Every rarity has a role. Every card has a chance to power up. And with limited Boosts and Peeks, the choices you make decide who wins.</div>
         <details style={{cursor:"pointer"}}>
-          <summary style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:8}}>How to Play</summary>
-          <ol style={{fontSize:16,color:"#cbd5e1",lineHeight:1.8,paddingLeft:24,marginTop:10}}>
+          <summary style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>How to Play</summary>
+          <ol style={{fontSize:18,color:"#cbd5e1",lineHeight:1.8,paddingLeft:24,marginTop:10}}>
             <li>Connect your WAX Cloud Wallet.</li>
             <li>Load your Series 1 Blockchain Heroes.</li>
             <li>Choose your heroes or click <strong>BUILD</strong> to fill your slots.</li>
@@ -641,31 +641,31 @@ function App(){
           </div>
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:12}}>Go to Collection & Deck to build your deck first.</div>}
           {game&&<div style={{marginBottom:12}}>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:20,color:"#94a3b8",marginBottom:6}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:22,color:"#94a3b8",marginBottom:6}}>
               <span>You: {game.pPts} pts ({pLeft} cards)</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>Opp: {game.oPts} pts ({oLeft} cards)</span>
             </div>
             <div className="score-track"><div className="score-fill" style={{width:pPct+"%"}}/></div>
           </div>}
           {game&&!game.winner&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:12}}>
             <div style={{padding:16,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(129,140,248,0.3)",borderRadius:16}}>
-              <div style={{fontSize:18,fontWeight:700,color:"#a5b4fc",marginBottom:8}}>Trigger Power</div>
-              <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:16,padding:"10px 20px",marginBottom:10}}>{game.pManualBuff?"Activated!":game.pCharges>0?"Boost +1 STR":"No charges"}</button>
+              <div style={{fontSize:20,fontWeight:700,color:"#a5b4fc",marginBottom:8}}>Trigger Power</div>
+              <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pManualBuff?"Activated!":game.pCharges>0?"Boost +1 STR":"No charges"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:20}}>{i<game.pCharges?"\u2705":"\u274C"}</span>)}
+                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pCharges?"\u2705":"\u274C"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(34,211,238,0.08)",border:"1px solid rgba(34,211,238,0.3)",borderRadius:16}}>
-              <div style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:8}}>Peek</div>
-              <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:16,padding:"10px 20px",marginBottom:10}}>{isWar?"No peek in WAR":game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
+              <div style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>Peek</div>
+              <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{isWar?"No peek in WAR":game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:20}}>{i<game.pPeeks?"\u2705":"\u274C"}</span>)}
+                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pPeeks?"\u2705":"\u274C"}</span>)}
               </div>
             </div>
             <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
-              <div style={{fontSize:18,fontWeight:700,color:"#fda4af",marginBottom:8}}>Opponent Buffs</div>
-              <div style={{fontSize:16,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oCharges} remaining</div>
+              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>Opponent Buffs</div>
+              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oCharges} remaining</div>
               <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:20}}>{i<game.oCharges?"\u2705":"\u274C"}</span>)}
+                {Array.from({length:MAX_CHARGES}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oCharges?"\u2705":"\u274C"}</span>)}
               </div>
             </div>
           </div>}
@@ -673,7 +673,7 @@ function App(){
           {roundResult}
           {game?.winner&&<div className="win-text" style={{marginTop:8}}>
   {game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}
-  <div style={{fontSize:22,fontWeight:400,color:"#94a3b8",marginTop:6}}>Final Score: You {game.pPts} - {game.oPts} Opponent{game.round>=MAX_ROUNDS?" (Round limit reached)":" (All cards captured)"}</div>
+  <div style={{fontSize:24,fontWeight:400,color:"#94a3b8",marginTop:6}}>Final Score: You {game.pPts} - {game.oPts} Opponent{game.round>=MAX_ROUNDS?" (Round limit reached)":" (All cards captured)"}</div>
 </div>}
         </div>
         <div className="grid-2">
@@ -695,12 +695,12 @@ function App(){
             <button className="btn btn-primary" onClick={()=>setDeck(buildDeck(ownedCards))}>Build Deck</button>
             <span className="text-sm text-slate">One click to build the largest legal deck.</span>
           </div>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:16,color:"#94a3b8",marginBottom:6}}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:18,color:"#94a3b8",marginBottom:6}}>
             <span>{deck.length}/{DECK_SIZE} cards</span><span>{fill}%</span>
           </div>
           <div className="progress-track"><div className="progress-fill" style={{width:fill+"%"}}/></div>
           <div className="grid-5 mt-3">
-            {Object.keys(RARITY_CAPS).map(r=>{const bc=BUFF_CHANCE[r]||0;return <div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:13}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div>{bc>0&&<div style={{fontSize:11,color:"#4ade80",marginTop:4}}>{Math.round(bc*100)}% chance +1 STR</div>}</div>})}
+            {Object.keys(RARITY_CAPS).map(r=>{const bc=BUFF_CHANCE[r]||0;return <div key={r} className="rarity-cap-box" onClick={()=>toggleRarityFilter(r)} style={{cursor:"pointer",opacity:rarityFilter[r]?1:0.35,transition:"opacity 0.2s"}}><span className={`badge badge-${r}`} style={{fontSize:15}}>{titleCase(r)}</span><div className="text-xs mt-2">{dc[r]}/{RARITY_CAPS[r]}</div>{bc>0&&<div style={{fontSize:13,color:"#4ade80",marginTop:4}}>{Math.round(bc*100)}% chance +1 STR</div>}</div>})}
           </div>
         </div>
         <div className="ui-card" style={{marginBottom:16}}>
@@ -717,7 +717,7 @@ function App(){
             const colArrays=[];
             for(let col=0;col<cols;col++) colArrays.push(heroList.slice(col*rows,(col+1)*rows));
             return(
-              <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,fontSize:14}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,fontSize:16}}>
                 {colArrays.map((col,ci)=>
                   <div key={ci} style={{display:"flex",flexDirection:"column",gap:2}}>
                     {col.map(([key,name])=>{
@@ -726,11 +726,11 @@ function App(){
                       const marketUrl="https://heroes.atomichub.io/market?blockchain=wax-mainnet&collection_name=officialhero&order=asc&primary_chain=wax-mainnet&schema_name=series1&sort=price&symbol=WAX&search="+encodeURIComponent(name);
                       return(
                         <div key={key} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",color:inDeck?"#4ade80":"#ef4444"}}>
-                          <span style={{fontSize:15,lineHeight:1}}>{inDeck?"✓":"✗"}</span>
+                          <span style={{fontSize:17,lineHeight:1}}>{inDeck?"✓":"✗"}</span>
                           {!owned?(
-                            <a href={marketUrl} target="_blank" rel="noopener noreferrer" style={{color:"#ef4444",fontSize:13,textDecoration:"underline",textDecorationStyle:"dotted",opacity:0.8}}>{name}</a>
+                            <a href={marketUrl} target="_blank" rel="noopener noreferrer" style={{color:"#ef4444",fontSize:15,textDecoration:"underline",textDecorationStyle:"dotted",opacity:0.8}}>{name}</a>
                           ):(
-                            <span style={{color:inDeck?"#e2e8f0":"#64748b",fontSize:13}}>{name}</span>
+                            <span style={{color:inDeck?"#e2e8f0":"#64748b",fontSize:15}}>{name}</span>
                           )}
                         </div>
                       );
@@ -757,9 +757,9 @@ function App(){
                     <img src={buildImageUrl(heroImg)} alt={variants[0].name} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
                   </div>}
                   <div style={{flex:1}}>
-                    <div style={{fontSize:20,fontWeight:700,marginBottom:8,color:selectedVariant?undefined:"#94a3b8"}}>
+                    <div style={{fontSize:22,fontWeight:700,marginBottom:8,color:selectedVariant?undefined:"#94a3b8"}}>
                       {variants[0].name}
-                      {selectedVariant&&<span className={`badge badge-${selectedVariant.rarity}`} style={{marginLeft:8,fontSize:13}}>{titleCase(selectedVariant.rarity)} selected</span>}
+                      {selectedVariant&&<span className={`badge badge-${selectedVariant.rarity}`} style={{marginLeft:8,fontSize:15}}>{titleCase(selectedVariant.rarity)} selected</span>}
                     </div>
                     <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                       {variants.map(card=>{
@@ -778,9 +778,9 @@ function App(){
                             onClick={()=>toggleCard(card)}
                             disabled={!inDeck&&!ok}
                           >
-                            <span className={`badge badge-${card.rarity}`} style={{fontSize:12}}>{titleCase(card.rarity)}</span>
-                            <span style={{fontSize:14,color:"#e2e8f0"}}>STR: {getCardStrength(card)}</span>
-                            <span style={{fontSize:13,color:inDeck?"#fde68a":"#64748b"}}>{inDeck?"✓":""}</span>
+                            <span className={`badge badge-${card.rarity}`} style={{fontSize:14}}>{titleCase(card.rarity)}</span>
+                            <span style={{fontSize:16,color:"#e2e8f0"}}>STR: {getCardStrength(card)}</span>
+                            <span style={{fontSize:15,color:inDeck?"#fde68a":"#64748b"}}>{inDeck?"✓":""}</span>
                           </button>
                         );
                       })}
@@ -808,7 +808,7 @@ function App(){
                   {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
                     <img src={buildImageUrl(card.img)} alt={card.name} style={{width:"100%",height:100,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
                   </div>}
-                  <div className={`name-${card.rarity}`} style={{fontSize:20,fontWeight:700}}>{card.name}</div>
+                  <div className={`name-${card.rarity}`} style={{fontSize:22,fontWeight:700}}>{card.name}</div>
                   <div className="flex-wrap mt-2 gap-2">
                     <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
                     <span className="badge badge-outline">STR: {getCardStrength(card)}</span>
