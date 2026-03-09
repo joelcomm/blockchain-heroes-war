@@ -289,6 +289,17 @@ async function fetchOwnedCards(account) {
   return allCards;
 }
 
+const RARITIES = ["common","uncommon","rare","epic","legendary"];
+function generateDemoCards(){
+  const cards=[];
+  ALL_HEROES.forEach((name,i)=>{
+    RARITIES.forEach(r=>{
+      cards.push({ id:"demo-"+i+"-"+r, assetId:"demo-"+i+"-"+r, templateId:"#D"+(i*5+RARITIES.indexOf(r)+1), name, rarity:r, img:undefined });
+    });
+  });
+  return cards;
+}
+
 function buildDeck(pool){
   // Group cards by hero, one variant per hero
   const groups=new Map();
@@ -421,6 +432,7 @@ function App(){
   const [game,setGame]=useState(null);
 
   // Wallet state
+  const [demoMode,setDemoMode]=useState(false);
   const [walletAccount,setWalletAccount]=useState(null);
   const [walletType,setWalletType]=useState(null); // "wcw" or "anchor"
   const [walletLoading,setWalletLoading]=useState(false);
@@ -431,8 +443,22 @@ function App(){
   const anchorLinkRef=useRef(null);
   const anchorSessionRef=useRef(null);
 
-  const isConnected = !!walletAccount;
+  const isConnected = !!walletAccount || demoMode;
   const toggleRarityFilter=(r)=>setRarityFilter(f=>({...f,[r]:!f[r]}));
+
+  const toggleDemoMode = (checked)=>{
+    if(checked){
+      setDemoMode(true);
+      setOwnedCards(generateDemoCards());
+      setDeck([]);
+      setError("");
+    } else {
+      setDemoMode(false);
+      setOwnedCards([]);
+      setDeck([]);
+      setGame(null);
+    }
+  };
 
   // Helper: try to create a WaxJS instance
   function tryInitWax(){
@@ -654,7 +680,7 @@ function App(){
       <div className="header-row">
         <h1 style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><img src="blockchain-heroes-logo.png" alt="Blockchain Heroes" style={{height:60,maxWidth:320}}/> WAR</h1>
         <div className="wallet-area">
-          {isConnected ? (
+          {walletAccount ? (
             <>
               <button className="btn btn-wallet connected" onClick={disconnectWallet}>
                 Disconnect
@@ -663,6 +689,14 @@ function App(){
                 {walletAccount} ({walletType==="anchor"?"Anchor":"WCW"})
               </span>
             </>
+          ) : demoMode ? (
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:16,color:"#67e8f9"}}>
+                <input type="checkbox" checked={true} onChange={()=>toggleDemoMode(false)} style={{width:20,height:20,accentColor:"#67e8f9"}}/>
+                I don't have cards!
+              </label>
+              <span className="badge" style={{background:"#0e7490",color:"#ecfeff",fontSize:14,padding:"4px 12px",borderRadius:12}}>Demo Mode</span>
+            </div>
           ) : (
             <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
               <button className="btn btn-wallet" onClick={connectWallet} disabled={walletLoading}>
@@ -671,6 +705,10 @@ function App(){
               <button className="btn btn-wallet" onClick={connectAnchor} disabled={walletLoading} style={{background:"linear-gradient(135deg,#3650A2,#4A6CF7)"}}>
                 {walletLoading ? (<><span className="spinner"></span> Connecting...</>) : "Anchor Wallet"}
               </button>
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:16,color:"#94a3b8"}}>
+                <input type="checkbox" checked={false} onChange={()=>toggleDemoMode(true)} style={{width:20,height:20,accentColor:"#67e8f9"}}/>
+                I don't have cards!
+              </label>
             </div>
           )}
           {!isConnected && <span className="badge badge-demo">Not Connected</span>}
@@ -811,7 +849,9 @@ function App(){
           })()}
         </div>
         <div className="text-sm text-slate mb-4" style={{marginBottom:16}}>
-          {isConnected
+          {demoMode
+            ? `Demo Mode: Showing all ${ownedCards.length} cards (50 heroes x 5 rarities).`
+            : isConnected
             ? `Showing ${ownedCards.length} cards from ${walletAccount}'s inventory.`
             : "Connect your WAX wallet to load your cards and build a deck."}
         </div>
