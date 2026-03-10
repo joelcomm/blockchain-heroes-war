@@ -1145,79 +1145,36 @@ function App(){
       {tab==="battle"&&<div className="space">
         <div className={`ui-card${warDeclared?" fx-screen-shake":""}`} style={{textAlign:"center"}}>
           {/* Difficulty selector — only when no active game */}
-          {(!game||game.winner)&&<div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:16,alignItems:"center"}}>
+          {(!game||game.winner)&&<div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:12,alignItems:"center"}}>
             <span style={{fontSize:16,fontWeight:700,color:"#94a3b8",marginRight:4}}>Difficulty:</span>
             {Object.entries(DIFFICULTY_PRESETS).map(([key,cfg])=><button key={key} className="btn" onClick={()=>saveDifficulty(key)} style={{background:difficulty===key?cfg.color+"22":"transparent",border:"2px solid "+(difficulty===key?cfg.color:"rgba(255,255,255,0.12)"),color:difficulty===key?cfg.color:"#64748b",fontSize:17,fontWeight:difficulty===key?800:600,padding:"8px 22px",borderRadius:14,transition:"all .2s"}}>{cfg.label}</button>)}
           </div>}
-          {game&&!game.winner&&<div style={{display:"flex",justifyContent:"center",marginBottom:8}}><span className="badge" style={{background:game.cfg.color+"22",color:game.cfg.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+game.cfg.color+"44"}}>{game.cfg.label} Mode</span></div>}
-          <div className="flex-wrap" style={{justifyContent:"center",marginBottom:16}}>
+          <div className="flex-wrap" style={{justifyContent:"center",gap:10,marginBottom:10}}>
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
+            {game&&!game.winner&&<span className="badge" style={{background:game.cfg.color+"22",color:game.cfg.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+game.cfg.color+"44"}}>{game.cfg.label}</span>}
           </div>
-          {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:12}}>Go to Collection & Deck to build your deck first.</div>}
-          {game&&<div style={{marginBottom:12,position:"relative"}}>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:22,color:"#94a3b8",marginBottom:6}}>
-              <span>You: {game.pPts} pts ({pLeft} cards)</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>Opp: {game.oPts} pts ({oLeft} cards)</span>
+          {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:8}}>Go to Collection & Deck to build your deck first.</div>}
+          {/* ── Score bar ── */}
+          {game&&<div style={{marginBottom:8,position:"relative"}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:20,color:"#94a3b8",marginBottom:4}}>
+              <span>You: {game.pPts} pts ({pLeft})</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>Opp: {game.oPts} pts ({oLeft})</span>
             </div>
             <div className="score-track"><div className={`score-fill${scoreFlash?" fx-score-flash":""}`} style={{width:pPct+"%"}}/></div>
             {floatingPts.map(fp=><div key={fp.id} className={`float-pts pts-${fp.type}`} style={{left:fp.side==="player"?"15%":"75%",top:"-10px"}}>+{fp.amount}</div>)}
           </div>}
-          {game&&!game.winner&&<>
-          <div style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:6,textTransform:"uppercase",letterSpacing:2}}>Your Abilities</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:12}}>
-            <div style={{padding:16,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(129,140,248,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#a5b4fc",marginBottom:8}}>⚡ Trigger Power</div>
-              <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pManualBuff?"Activated!":game.pCharges>0?"Boost +1 STR":"No charges"}</button>
-              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:game.cfg.charges}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pCharges?"✅":"❌"}</span>)}
-              </div>
-            </div>
-            <div style={{padding:16,background:"rgba(34,211,238,0.08)",border:"1px solid rgba(34,211,238,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#67e8f9",marginBottom:8}}>👁️ Peek</div>
-              <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{isWar?"No peek in WAR":game.pPeeking?"Peeking!":game.pPeeks>0?"Reveal Opponent":"No peeks"}</button>
-              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:game.cfg.peeks}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pPeeks?"✅":"❌"}</span>)}
-              </div>
-            </div>
-            <div style={{padding:16,background:"rgba(250,204,21,0.08)",border:"1px solid rgba(250,204,21,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginBottom:8}}>🎲 Double Down</div>
-              <button className="btn" onClick={doubleDown} disabled={!game||game.winner||game.reveal||game.pDoubleDown||game.pDoubles<=0} style={{background:game.pDoubleDown?"#059669":game.pDoubles>0?"#d97706":"#334155",color:"white",fontSize:18,padding:"10px 20px",marginBottom:10}}>{game.pDoubleDown?"Doubled!":game.pDoubles>0?"2x Points":"No doubles"}</button>
-              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:game.cfg.doubles}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.pDoubles?"✅":"❌"}</span>)}
-              </div>
-            </div>
-          </div>
-          <div style={{fontSize:18,fontWeight:700,color:"#fda4af",marginBottom:6,textTransform:"uppercase",letterSpacing:2}}>Opponent Abilities</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:12}}>
-            <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>⚡ Buffs</div>
-              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.oCharges} remaining</div>
-              <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:game.cfg.charges}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oCharges?"✅":"❌"}</span>)}
-              </div>
-            </div>
-            <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>⚡ Counter-Strike</div>
-              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{Math.round(game.cfg.counterStrike*100)}% counter chance</div>
-              <div style={{fontSize:15,color:"#64748b",textAlign:"center"}}>Auto-triggers when you boost</div>
-            </div>
-            <div style={{padding:16,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.3)",borderRadius:16}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#fda4af",marginBottom:8}}>🛡️ Shield</div>
-              <div style={{fontSize:18,color:"#94a3b8",padding:"10px 0",marginBottom:10}}>{game.cfg.shields>0?game.oShields+" remaining ("+game.cfg.shieldEffect+"s pts)":"None"}</div>
-              {game.cfg.shields>0&&<div style={{display:"flex",justifyContent:"center",gap:6,marginTop:4}}>
-                {Array.from({length:game.cfg.shields}).map((_,i)=><span key={i} style={{fontSize:22}}>{i<game.oShields?"✅":"❌"}</span>)}
-              </div>}
-            </div>
-          </div>
-          </>}
-          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:12}}>WAR! Three cards go down each. The third card decides the pile.</div>}
+          {/* ── WAR banner ── */}
+          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:8,padding:"10px 14px",fontSize:20}}>WAR! Three cards go down. The third decides the pile.</div>}
+          {/* ── Round result ── */}
           {roundResult}
-          {game?.winner&&<div className="win-text" style={{marginTop:8}}>
+          {/* ── Winner ── */}
+          {game?.winner&&<div className="win-text" style={{marginTop:4,fontSize:32}}>
   {game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}
-  <div style={{fontSize:24,fontWeight:400,color:"#94a3b8",marginTop:6}}>Final Score: You {game.pPts} - {game.oPts} Opponent{game.round>=MAX_ROUNDS?" (Round limit reached)":" (All cards captured)"}</div>
+  <div style={{fontSize:20,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final: You {game.pPts} - {game.oPts} Opp{game.round>=MAX_ROUNDS?" (Round limit)":" (All cards captured)"}</div>
 </div>}
           <Confetti show={showConfetti}/>
         </div>
+        {/* ── CARDS — the main event ── */}
         <div className="grid-2">
           <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":(game?.pDoubleDown?"Your card (DOUBLE DOWN!)":"Your card")} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff} outcome={roundOutcome} doubleDown={!!game?.pDoubleDown} isWinner={game?.winner==="player"} warActive={isWar&&game?.reveal}/>
           {(()=>{
@@ -1228,6 +1185,19 @@ function App(){
             return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal}/>;
           })()}
         </div>
+        {/* ── Compact ability toolbar ── */}
+        {game&&!game.winner&&<div style={{marginTop:10,padding:"12px 16px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16}}>
+          <div style={{display:"flex",justifyContent:"center",gap:8,flexWrap:"wrap",marginBottom:8}}>
+            <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>⚡ {game.pManualBuff?"Boosted!":"Boost"} <span style={{opacity:0.7,fontSize:14}}>({game.pCharges})</span></button>
+            <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>👁️ {game.pPeeking?"Peeking!":"Peek"} <span style={{opacity:0.7,fontSize:14}}>({game.pPeeks})</span></button>
+            <button className="btn" onClick={doubleDown} disabled={!game||game.winner||game.reveal||game.pDoubleDown||game.pDoubles<=0} style={{background:game.pDoubleDown?"#059669":game.pDoubles>0?"#d97706":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>🎲 {game.pDoubleDown?"Doubled!":"Double"} <span style={{opacity:0.7,fontSize:14}}>({game.pDoubles})</span></button>
+          </div>
+          <div style={{display:"flex",justifyContent:"center",gap:16,fontSize:15,color:"#94a3b8",flexWrap:"wrap"}}>
+            <span style={{color:"#fda4af"}}>Opp: ⚡ Buffs ({game.oCharges})</span>
+            <span style={{color:"#fda4af"}}>⚡ Counter ({Math.round(game.cfg.counterStrike*100)}%)</span>
+            {game.cfg.shields>0&&<span style={{color:"#fda4af"}}>🛡️ Shield ({game.oShields})</span>}
+          </div>
+        </div>}
         {/* Stats Panel */}
         <div className="ui-card" style={{marginTop:16}}>
           <div className="ui-card-title">Player Stats</div>
