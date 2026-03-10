@@ -707,7 +707,7 @@ function App(){
   const pregameMusicRef=useRef(null);
   const gameplayMusicRef=useRef(null);
   const musicStartedRef=useRef(false);
-  const [musicMuted,setMusicMuted]=useState(()=>{ try{ return localStorage.getItem("bh_war_music_muted")==="true"; }catch(e){ return false; } });
+  const [musicMuted,setMusicMuted]=useState(false); // always start unmuted
   const MUSIC_VOLUME=0.25;
 
   // Initialize audio objects once and attempt autoplay
@@ -718,10 +718,8 @@ function App(){
     const gp=new Audio("sounds/gameplay.mp3");
     gp.loop=true; gp.volume=MUSIC_VOLUME; gp.preload="auto";
     gameplayMusicRef.current=gp;
-    // Try to autoplay immediately; if browser blocks it, first click will start it
-    if(!musicMuted){
-      pg.play().then(()=>{ musicStartedRef.current=true; }).catch(()=>{});
-    }
+    // Try to autoplay immediately; if browser blocks it, interaction handler will start it
+    pg.play().then(()=>{ musicStartedRef.current=true; }).catch(()=>{});
     return()=>{ pg.pause(); gp.pause(); };
   },[]);
 
@@ -743,19 +741,31 @@ function App(){
     },interval);
   };
 
-  // Fallback: start pregame music on first click if autoplay was blocked
-  const startPregameMusic=useCallback(()=>{
-    if(musicStartedRef.current||musicMuted)return;
-    musicStartedRef.current=true;
-    const pg=pregameMusicRef.current;
-    if(pg){ pg.volume=MUSIC_VOLUME; pg.play().catch(()=>{}); }
-  },[musicMuted]);
-
+  // Fallback: start pregame music on any user interaction if autoplay was blocked
   useEffect(()=>{
-    const handler=()=>startPregameMusic();
-    document.addEventListener("click",handler,{once:true});
-    return()=>document.removeEventListener("click",handler);
-  },[startPregameMusic]);
+    const tryStart=()=>{
+      if(musicStartedRef.current||musicMuted)return;
+      const pg=pregameMusicRef.current;
+      if(pg){
+        pg.volume=MUSIC_VOLUME;
+        pg.play().then(()=>{
+          musicStartedRef.current=true;
+          // Remove all listeners once music is playing
+          document.removeEventListener("click",tryStart);
+          document.removeEventListener("keydown",tryStart);
+          document.removeEventListener("touchstart",tryStart);
+        }).catch(()=>{});
+      }
+    };
+    document.addEventListener("click",tryStart);
+    document.addEventListener("keydown",tryStart);
+    document.addEventListener("touchstart",tryStart);
+    return()=>{
+      document.removeEventListener("click",tryStart);
+      document.removeEventListener("keydown",tryStart);
+      document.removeEventListener("touchstart",tryStart);
+    };
+  },[musicMuted]);
 
   // Switch to gameplay music when match starts
   const startGameplayMusic=()=>{
@@ -773,11 +783,10 @@ function App(){
     if(game?.winner){ stopGameplayMusic(); }
   },[game?.winner]);
 
-  // Mute/unmute toggle
+  // Mute/unmute toggle (not persisted — always starts unmuted on page load)
   const toggleMusic=()=>{
     setMusicMuted(prev=>{
       const next=!prev;
-      try{ localStorage.setItem("bh_war_music_muted",String(next)); }catch(e){}
       const pg=pregameMusicRef.current, gp=gameplayMusicRef.current;
       if(next){ if(pg){pg.pause();} if(gp){gp.pause();} }
       else{
