@@ -1147,7 +1147,13 @@ function App(){
     if(!deck.length)return;
     setShowConfetti(false); setRoundOutcome(null); setEndgameSplash(null);
     const v=VILLAINS[villainId]||VILLAINS.the_swarm;
-    setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId));
+    const oDeck=buildDeck(ownedCards);
+    const g=createGame(deck,oDeck,v.cfg,villainId);
+    // Preload all card images from both decks so they display instantly on flip
+    [...deck,...oDeck].forEach(c=>{
+      if(c.img){ const i=new Image(); i.src=buildImageUrl(c.img); }
+    });
+    setGame(g);
     // Switch to gameplay music
     startGameplayMusic();
     // Play villain passive ability sound on battle start
