@@ -210,8 +210,35 @@
   @keyframes dramaticZoom { 0%{transform:scale(1)} 100%{transform:scale(1.08)} }
   .fx-final-zoom { animation: dramaticZoom 2s ease-in-out forwards; }
 
-  /* Villain selector card hover */
-  .villain-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  /* Villain selector panel */
+  .villain-panel { margin-bottom:16px; }
+  .villain-panel-title { font-size:26px; font-weight:900; color:#f1f5f9; text-align:center; margin-bottom:12px; text-transform:uppercase; letter-spacing:2px; }
+  .villain-grid { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .villain-card {
+    cursor:pointer; padding:14px; border-radius:18px;
+    border:2px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.03);
+    transition:all 0.25s ease; text-align:center;
+    display:flex; flex-direction:column; align-items:center;
+    width:calc(33.333% - 10px); min-width:160px; max-width:240px;
+    box-sizing:border-box;
+  }
+  .villain-card:hover { transform:translateY(-6px); box-shadow:0 12px 32px rgba(0,0,0,0.5); }
+  .villain-card.selected { box-shadow:0 0 24px rgba(255,255,255,0.15); }
+  .villain-card img { width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:12px; margin-bottom:8px; }
+  .villain-card .v-name { font-size:17px; font-weight:800; line-height:1.2; }
+  .villain-card .v-subtitle { font-size:13px; color:#94a3b8; margin-top:2px; }
+  .villain-card .v-stars { font-size:16px; color:#fbbf24; letter-spacing:2px; margin:4px 0; }
+  .villain-card .v-label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.8; }
+  .villain-card .v-ability { font-size:15px; font-weight:700; margin-top:4px; }
+  .villain-card .v-desc { font-size:12px; color:#94a3b8; line-height:1.3; margin-top:2px; }
+
+  /* Mobile: cards shrink to 2-column on small screens */
+  @media (max-width: 520px) {
+    .villain-card { width:calc(50% - 8px); min-width:140px; }
+    .villain-card .v-name { font-size:15px; }
+    .villain-card .v-ability { font-size:13px; }
+  }
 
   /* Mobile adjustments for effects */
   @media (max-width: 640px) {
@@ -266,15 +293,22 @@ const ARENA_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybe
 const VICTORY_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeiaxuodno7rhjtra4flau6bmxdw6qbo7t5xeuqrtv3fe43iw7zjru4";
 
 /* ═══════════ BLOCKCHAIN VILLAINS ═══════════ */
-const VILLAIN_IMG_BASE = "QmQYXMWU7GSaQu1RoNwWEdFyoFiMF2t7GWD1jxCA2xi5rL/main";
+const VILLAIN_IMG_BASE = "QmQYXMWU7GSaQu1RoNwWEdFyoFiMF2t7GWD1jxCA2xi5rL";
 const VILLAINS = {
-  the_swarm:     { id:"the_swarm",     name:"The Swarm",       subtitle:"The Consuming Legion",    cardNum:38, color:"#06b6d4", ability:"Overwhelm", abilityDesc:"WAR uses 4 facedown cards instead of 3",                warCards:4,          difficulty:1, diffLabel:"Easy",       cfg:{ shields:0, shieldEffect:"halve", buffAccuracy:0.60, counterStrike:0.05, doubles:5, charges:6, peeks:5 } },
-  whisper:       { id:"whisper",       name:"Whisper",         subtitle:"The Inner Demon",         cardNum:31, color:"#94a3b8", ability:"FUD",       abilityDesc:"Your hero powers activate 15% less often",              fudPenalty:0.15,     difficulty:2, diffLabel:"Normal",     cfg:{ shields:1, shieldEffect:"halve", buffAccuracy:0.75, counterStrike:0.15, doubles:4, charges:5, peeks:4 } },
-  lady_iris:     { id:"lady_iris",     name:"Lady Iris",       subtitle:"The Lavicious Leech",     cardNum:33, color:"#e879f9", ability:"Leech",     abilityDesc:"25% chance to drain 1 ability charge when winning",     leechChance:0.25,    difficulty:3, diffLabel:"Hard",       cfg:{ shields:2, shieldEffect:"halve", buffAccuracy:0.85, counterStrike:0.25, doubles:3, charges:4, peeks:3 } },
-  encryptkeeper: { id:"encryptkeeper", name:"Encryptkeeper",   subtitle:"The Necromachinist",      cardNum:37, color:"#22c55e", ability:"Encrypt",   abilityDesc:"Opponent card strength hidden until reveal",            encrypted:true,      difficulty:4, diffLabel:"Insane",     cfg:{ shields:3, shieldEffect:"block", buffAccuracy:0.95, counterStrike:0.40, doubles:2, charges:3, peeks:2 } },
-  rez_phede:     { id:"rez_phede",     name:"Rez'Phede",      subtitle:"The Eternal Devourer",    cardNum:21, color:"#ef4444", ability:"Devour",    abilityDesc:"40% chance to steal 1 pt when winning",                 devourChance:0.40,   difficulty:5, diffLabel:"Impossible", cfg:{ shields:5, shieldEffect:"block", buffAccuracy:1.00, counterStrike:0.50, doubles:1, charges:3, peeks:1 } },
+  the_swarm:     { id:"the_swarm",     name:"The Swarm",       subtitle:"The Consuming Legion",    cardNum:38, classicImg:"classics/series2/38.jpg",                                   color:"#06b6d4", ability:"Overwhelm", abilityDesc:"WAR uses 4 facedown cards instead of 3",                warCards:4,          difficulty:1, diffLabel:"Easy",       cfg:{ shields:0, shieldEffect:"halve", buffAccuracy:0.60, counterStrike:0.05, npcCharges:3,  doubles:5, charges:6, peeks:5 } },
+  whisper:       { id:"whisper",       name:"Whisper",         subtitle:"The Inner Demon",         cardNum:31, classicImg:"classics/series2/31.jpg",                                   color:"#94a3b8", ability:"FUD",       abilityDesc:"Your hero powers activate 15% less often",              fudPenalty:0.15,     difficulty:2, diffLabel:"Normal",     cfg:{ shields:1, shieldEffect:"halve", buffAccuracy:0.75, counterStrike:0.15, npcCharges:4,  doubles:4, charges:5, peeks:4 } },
+  lady_iris:     { id:"lady_iris",     name:"Lady Iris",       subtitle:"The Lavicious Leech",     cardNum:33, classicImg:"classics/series2/33.jpg",                                   color:"#e879f9", ability:"Leech",     abilityDesc:"25% chance to drain 1 ability charge when winning",     leechChance:0.25,    difficulty:3, diffLabel:"Hard",       cfg:{ shields:2, shieldEffect:"halve", buffAccuracy:0.85, counterStrike:0.25, npcCharges:5,  doubles:3, charges:4, peeks:3 } },
+  encryptkeeper: { id:"encryptkeeper", name:"Encryptkeeper",   subtitle:"The Necromachinist",      cardNum:37, classicImg:"QmZwmizReu8wbMjT1eQy5emXP1NnPwQcgzHX8EMQdXx9rA",            color:"#22c55e", ability:"Encrypt",   abilityDesc:"Opponent card strength hidden until reveal",            encrypted:true,      difficulty:4, diffLabel:"Insane",     cfg:{ shields:3, shieldEffect:"block", buffAccuracy:0.95, counterStrike:0.40, npcCharges:6,  doubles:2, charges:3, peeks:2 } },
+  rez_phede:     { id:"rez_phede",     name:"Rez'Phede",      subtitle:"The Eternal Devourer",    cardNum:21, classicImg:"classics/series2/21.jpg",                                   color:"#ef4444", ability:"Devour",    abilityDesc:"40% chance to steal 1 pt when winning",                 devourChance:0.40,   difficulty:5, diffLabel:"Impossible", cfg:{ shields:5, shieldEffect:"block", buffAccuracy:1.00, counterStrike:0.50, npcCharges:8,  doubles:1, charges:3, peeks:1 } },
 };
-function villainImgUrl(v,side="front"){ return WAX_CONFIG.ipfsGateway+VILLAIN_IMG_BASE+"/"+(side==="front"?"front/common/"+v.cardNum+".jpg":"back/"+v.cardNum+"b.jpg"); }
+function villainImgUrl(v,side="front"){
+  if(side==="front"){
+    // Classic art (no text) — Encryptkeeper has standalone IPFS hash, others use shared directory
+    const path = v.classicImg.startsWith("Qm") && !v.classicImg.includes("/") ? v.classicImg : VILLAIN_IMG_BASE+"/"+v.classicImg;
+    return WAX_CONFIG.ipfsGateway+path;
+  }
+  return WAX_CONFIG.ipfsGateway+VILLAIN_IMG_BASE+"/main/back/"+v.cardNum+"b.jpg";
+}
 
 const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
@@ -437,7 +471,7 @@ function buildDeck(pool){
   }
   return [...picks.values()];
 }
-function createGame(pDeck,oDeck,cfg,villain){ return { cfg, villain, pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:cfg.charges, pManualBuff:false, oCharges:cfg.charges, oManualBuff:false, oCounterStrike:false, pPeeks:cfg.peeks, pPeeking:false, pDoubleDown:false, pDoubles:cfg.doubles, lastDoubleDown:false, oShields:cfg.shields, oShieldUsed:false, devoured:false, leeched:null }; }
+function createGame(pDeck,oDeck,cfg,villain){ return { cfg, villain, pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:cfg.charges, pManualBuff:false, oCharges:cfg.npcCharges||cfg.charges, oManualBuff:false, oCounterStrike:false, pPeeks:cfg.peeks, pPeeking:false, pDoubleDown:false, pDoubles:cfg.doubles, lastDoubleDown:false, oShields:cfg.shields, oShieldUsed:false, devoured:false, leeched:null }; }
 function npcDecideBuff(g,pCard,oCard){
   if(g.oCharges<=0)return false;
   // NPC occasionally misreads the situation based on difficulty
@@ -459,12 +493,16 @@ function npcCounterStrike(g){
 function npcDecideShield(g,ps,os,pile){
   if(g.oShields<=0)return false;
   if(os>=ps)return false; // don't waste shield when not losing
+  const brutal=g.cfg.shieldEffect==="block"; // Insane/Impossible are more aggressive with shields
   // Strategic: use shield when pile is large (lots of points at stake)
   if(pile.length>=8)return true;
-  // Use shield when losing badly on score and this loss would make it worse
+  // Use shield when losing on score and pile is meaningful
   if(g.oPts<g.pPts&&pile.length>=6)return true;
-  // Late game: protect when close score and losing
-  if(g.round>=45&&g.oPts<=g.pPts+5)return true;
+  // Block-type villains: shield any win worth 3+ pts when behind, or if Double Down active
+  if(brutal&&g.oPts<g.pPts&&pile.length>=4)return true;
+  if(brutal&&g.pDoubleDown&&pile.length>=2)return true;
+  // Late game: protect when close score (block villains activate earlier)
+  if(g.round>=(brutal?35:45)&&g.oPts<=g.pPts+5)return true;
   // Save shields otherwise
   return false;
 }
@@ -1129,9 +1167,9 @@ function App(){
             {/* Opponent Abilities */}
             <div style={{fontSize:19,fontWeight:700,color:"#fda4af",marginBottom:6}}>Opponent Abilities</div>
             <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
-              <li><strong>⚡ Buffs</strong> — The villain boosts strategically when losing by 1 or tied. Smarter villains are more accurate.</li>
+              <li><strong>⚡ Buffs</strong> — The villain boosts strategically when losing by 1 or tied. Smarter villains are more accurate and have more buff charges to use throughout the game.</li>
               <li><strong>⚡ Counter-Strike</strong> — When you use Trigger Power, the villain may auto-counter with their own +1 STR. Tougher villains counter more often.</li>
-              <li><strong>🛡️ Shield</strong> — The villain can reduce or fully block your points on a big win. Easy/Normal/Hard villains halve the points; Insane/Impossible villains block them entirely. Harder villains have more shields.</li>
+              <li><strong>🛡️ Shield</strong> — The villain can reduce or fully block your points on a big win. Easy/Normal/Hard villains halve the points; Insane/Impossible villains block them entirely and will aggressively counter your Double Down. Harder villains have more shields.</li>
             </ul>
 
             {/* Scoring & Winning */}
@@ -1168,22 +1206,26 @@ function App(){
       {/* ═══════════ BATTLE TAB ═══════════ */}
       {tab==="battle"&&<div className="space" style={{backgroundImage:`linear-gradient(rgba(15,23,42,0.82),rgba(15,23,42,0.88)),url(${ARENA_BG})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat",borderRadius:24,padding:16,margin:"-8px -4px"}}>
         <div className={`ui-card${warDeclared?" fx-screen-shake":""}`} style={{textAlign:"center"}}>
-          {/* Villain selector — only when no active game */}
-          {(!game||game.winner)&&<div style={{marginBottom:12}}>
-            <div style={{fontSize:18,fontWeight:800,color:"#f1f5f9",marginBottom:8,textAlign:"center"}}>Choose Your Villain</div>
-            <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
-              {Object.values(VILLAINS).map(v=>(
-                <div key={v.id} className="villain-card" onClick={()=>saveVillain(v.id)} style={{cursor:"pointer",width:130,padding:8,borderRadius:14,border:`2px solid ${villainId===v.id?v.color:"rgba(255,255,255,0.1)"}`,background:villainId===v.id?v.color+"15":"rgba(255,255,255,0.03)",transition:"all 0.2s",textAlign:"center"}}>
-                  <img src={villainImgUrl(v)} alt={v.name} style={{width:110,height:150,objectFit:"cover",borderRadius:10,marginBottom:4}} onError={(e)=>{e.target.style.display="none"}}/>
-                  <div style={{fontSize:14,fontWeight:800,color:v.color,lineHeight:1.2}}>{v.name}</div>
-                  <div style={{fontSize:11,color:"#94a3b8"}}>{v.subtitle}</div>
-                  <div style={{fontSize:13,color:"#fbbf24",letterSpacing:1}}>{"★".repeat(v.difficulty)+"☆".repeat(5-v.difficulty)}</div>
-                  <div style={{fontSize:12,fontWeight:700,color:v.color,marginTop:2}}>{v.ability}</div>
-                  <div style={{fontSize:10,color:"#64748b",lineHeight:1.2}}>{v.abilityDesc}</div>
-                </div>
-              ))}
+          {/* Villain selector — full panel when no active game, collapsed during play */}
+          {(!game||game.winner)?<div className="villain-panel">
+            <div className="villain-panel-title">Choose Your Villain</div>
+            <div className="villain-grid">
+              {Object.values(VILLAINS).map(v=>{
+                const sel=villainId===v.id;
+                return(
+                  <div key={v.id} className={`villain-card${sel?" selected":""}`} onClick={()=>saveVillain(v.id)} style={{borderColor:sel?v.color:"rgba(255,255,255,0.1)",background:sel?v.color+"18":"rgba(255,255,255,0.03)"}}>
+                    <img src={villainImgUrl(v)} alt={v.name} onError={(e)=>{e.target.style.display="none"}}/>
+                    <div className="v-name" style={{color:v.color}}>{v.name}</div>
+                    <div className="v-subtitle">{v.subtitle}</div>
+                    <div className="v-stars">{"★".repeat(v.difficulty)+"☆".repeat(5-v.difficulty)}</div>
+                    <div className="v-label" style={{color:v.color}}>{v.diffLabel}</div>
+                    <div className="v-ability" style={{color:v.color}}>{v.ability}</div>
+                    <div className="v-desc">{v.abilityDesc}</div>
+                  </div>
+                );
+              })}
             </div>
-          </div>}
+          </div>:null}
           <div className="flex-wrap" style={{justifyContent:"center",gap:10,marginBottom:10}}>
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
