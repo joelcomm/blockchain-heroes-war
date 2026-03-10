@@ -611,8 +611,9 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
           <div className={`flip-face flip-back${peeking?" fx-peek":""}`} style={{padding:8}}>
             {card?(<div style={{display:"flex",gap:24,width:"100%",height:"100%",alignItems:"center",padding:"0 8px"}}>
               {/* Left: full card image, fitted to show entire card */}
-              <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)"}}>
-                <img src={imgUrl} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10}} onLoad={()=>setImgLoaded(true)} onError={(e)=>{e.target.src=CARD_BACK;setImgLoaded(true);}} />
+              <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)",position:"relative"}}>
+                {!imgLoaded&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={CARD_BACK} alt="loading" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:0.5}}/></div>}
+                <img src={imgUrl} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:imgLoaded?1:0,transition:"opacity 0.2s"}} onLoad={()=>setImgLoaded(true)} onError={(e)=>{e.target.src=CARD_BACK;setImgLoaded(true);}} />
               </div>
               {/* Right: name, rarity, strength, power */}
               <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:10,minWidth:0}}>
@@ -689,7 +690,7 @@ function App(){
   const [musicMuted,setMusicMuted]=useState(()=>{ try{ return localStorage.getItem("bh_war_music_muted")==="true"; }catch(e){ return false; } });
   const MUSIC_VOLUME=0.25;
 
-  // Initialize audio objects once
+  // Initialize audio objects once and attempt autoplay
   useEffect(()=>{
     const pg=new Audio("sounds/pregame-audio.mp3");
     pg.loop=true; pg.volume=MUSIC_VOLUME; pg.preload="auto";
@@ -697,6 +698,10 @@ function App(){
     const gp=new Audio("sounds/gameplay.mp3");
     gp.loop=true; gp.volume=MUSIC_VOLUME; gp.preload="auto";
     gameplayMusicRef.current=gp;
+    // Try to autoplay immediately; if browser blocks it, first click will start it
+    if(!musicMuted){
+      pg.play().then(()=>{ musicStartedRef.current=true; }).catch(()=>{});
+    }
     return()=>{ pg.pause(); gp.pause(); };
   },[]);
 
@@ -718,7 +723,7 @@ function App(){
     },interval);
   };
 
-  // Start pregame music on first user interaction (browser autoplay policy)
+  // Fallback: start pregame music on first click if autoplay was blocked
   const startPregameMusic=useCallback(()=>{
     if(musicStartedRef.current||musicMuted)return;
     musicStartedRef.current=true;
@@ -1178,7 +1183,7 @@ function App(){
     });
   };
 
-  const roundResult=game&&game.cur&&!game.reveal?(()=>{
+  const roundResult=game&&game.cur&&!game.reveal&&!game.winner?(()=>{
     const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0),os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
     const lp=game.lastPtsWon||0;
     const extras=[];
