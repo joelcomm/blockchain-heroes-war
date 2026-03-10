@@ -213,15 +213,15 @@
   /* End-game splash graphic — zooms in then fades out */
   @keyframes endgameSplash {
     0%   { transform:scale(0.1) rotate(-8deg); opacity:0; }
-    15%  { transform:scale(1.15) rotate(2deg); opacity:1; }
-    25%  { transform:scale(1.0) rotate(0deg); opacity:1; }
-    75%  { transform:scale(1.0) rotate(0deg); opacity:1; }
+    10%  { transform:scale(1.15) rotate(2deg); opacity:1; }
+    15%  { transform:scale(1.0) rotate(0deg); opacity:1; }
+    85%  { transform:scale(1.0) rotate(0deg); opacity:1; }
     100% { transform:scale(1.1) rotate(0deg); opacity:0; }
   }
   .endgame-splash {
     position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center;
-    pointer-events:none; background:rgba(0,0,0,0.4);
-    animation: endgameSplash 3s cubic-bezier(0.22,1,0.36,1) forwards;
+    cursor:pointer; background:rgba(0,0,0,0.4);
+    animation: endgameSplash 5s cubic-bezier(0.22,1,0.36,1) forwards;
   }
   .endgame-splash img {
     max-width:70vw; max-height:60vh; object-fit:contain;
@@ -1147,7 +1147,13 @@ function App(){
     if(!deck.length)return;
     setShowConfetti(false); setRoundOutcome(null); setEndgameSplash(null);
     const v=VILLAINS[villainId]||VILLAINS.the_swarm;
-    setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId));
+    const oDeck=buildDeck(ownedCards);
+    const g=createGame(deck,oDeck,v.cfg,villainId);
+    // Preload all card images from both decks so they display instantly on flip
+    [...deck,...oDeck].forEach(c=>{
+      if(c.img){ const i=new Image(); i.src=buildImageUrl(c.img); }
+    });
+    setGame(g);
     // Switch to gameplay music
     startGameplayMusic();
     // Play villain passive ability sound on battle start
@@ -1187,11 +1193,11 @@ function App(){
       if(next.winner==="player"){
         setTimeout(()=>setShowConfetti(true),400);
         setTimeout(()=>playSfx("victory",0.6),300);
-        setTimeout(()=>{ setEndgameSplash("player"); setTimeout(()=>setEndgameSplash(null),3200); },200);
+        setTimeout(()=>{ setEndgameSplash("player"); setTimeout(()=>setEndgameSplash(null),5200); },200);
       }
       else if(next.winner==="opponent"){
         setTimeout(()=>playSfx("loss",0.6),300);
-        setTimeout(()=>{ setEndgameSplash("opponent"); setTimeout(()=>setEndgameSplash(null),3200); },200);
+        setTimeout(()=>{ setEndgameSplash("opponent"); setTimeout(()=>setEndgameSplash(null),5200); },200);
       }
       setGame(next);
     } else {
@@ -1436,7 +1442,7 @@ function App(){
   <div style={{fontSize:20,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final: You {game.pPts} - {game.oPts} {VILLAINS[game.villain]?.name||"Opp"}{game.round>=MAX_ROUNDS?" (Round limit)":" (All cards captured)"}</div>
 </div>}
           <Confetti show={showConfetti}/>
-          {endgameSplash&&<div className="endgame-splash" key={endgameSplash}><img src={endgameSplash==="player"?ENDGAME_VICTORY:ENDGAME_DEFEAT} alt={endgameSplash==="player"?"Victory!":"Defeated!"}/></div>}
+          {endgameSplash&&<div className="endgame-splash" key={endgameSplash} onClick={()=>setEndgameSplash(null)}><img src={endgameSplash==="player"?ENDGAME_VICTORY:ENDGAME_DEFEAT} alt={endgameSplash==="player"?"Victory!":"Defeated!"}/></div>}
         </div>
         {/* ── CARDS — the main event ── */}
         <div className="grid-2">
