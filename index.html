@@ -581,7 +581,8 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
   const imgUrl=card?buildImageUrl(card.img):null;
   // Reset loaded state when card changes
   useEffect(()=>{ setImgLoaded(false); },[imgUrl]);
-  const flipped=!facedown&&imgLoaded;
+  // Flip immediately when game says reveal — don't wait for image load
+  const flipped=!facedown;
   const flipClasses=[
     "flip-inner",
     flipped?"flipped":"",
