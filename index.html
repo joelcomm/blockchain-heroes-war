@@ -228,6 +228,43 @@
     filter:drop-shadow(0 0 60px rgba(251,191,36,0.5)) drop-shadow(0 0 120px rgba(251,191,36,0.3));
   }
 
+  /* Match loading screen */
+  @keyframes loadingPulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+  @keyframes loadingBarShine { 0%{left:-40%} 100%{left:140%} }
+  .match-loading-overlay {
+    position:absolute; inset:0; z-index:20; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px;
+    background:rgba(15,23,42,0.92); border-radius:24px;
+    backdrop-filter:blur(8px);
+  }
+  .match-loading-title {
+    font-size:28px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+    background:linear-gradient(to right,#67e8f9,#f0abfc,#fde68a);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    animation:loadingPulse 1.5s ease-in-out infinite;
+  }
+  .match-loading-bar-track {
+    width:280px; height:14px; background:rgba(255,255,255,0.08);
+    border-radius:999px; overflow:hidden; position:relative;
+    border:1px solid rgba(255,255,255,0.1);
+  }
+  .match-loading-bar-fill {
+    height:100%; border-radius:999px;
+    background:linear-gradient(90deg,#6366f1,#818cf8,#a78bfa);
+    transition:width 0.3s ease-out; position:relative; overflow:hidden;
+  }
+  .match-loading-bar-fill::after {
+    content:''; position:absolute; top:0; width:40%; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+    animation:loadingBarShine 1.2s ease-in-out infinite;
+  }
+  .match-loading-pct {
+    font-size:16px; color:#94a3b8; font-weight:600; letter-spacing:1px;
+  }
+  .match-loading-hint {
+    font-size:14px; color:#64748b; font-style:italic;
+  }
+
   /* Villain selector panel */
   .villain-panel { margin-bottom:16px; }
   .villain-panel-title { font-size:26px; font-weight:900; color:#f1f5f9; text-align:center; margin-bottom:12px; text-transform:uppercase; letter-spacing:2px; }
@@ -1171,20 +1208,49 @@ function App(){
   const totalPts=(game?.pPts??0)+(game?.oPts??0);
   const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
+  // --- Match loading state ---
+  const [matchLoading,setMatchLoading]=useState(false);
+  const [loadProgress,setLoadProgress]=useState(0);
+  const pendingGameRef=useRef(null);
+
   const startBattle=()=>{
     if(!deck.length)return;
     setShowConfetti(false); setRoundOutcome(null); setEndgameSplash(null);
     const v=VILLAINS[villainId]||VILLAINS.the_swarm;
     const oDeck=buildDeck(ownedCards);
     const g=createGame(deck,oDeck,v.cfg,villainId);
-    // Ensure all card images from both decks are cached (safety net)
-    preloadCardImages([...deck,...oDeck]);
-    setGame(g);
-    // Switch to gameplay music
-    startGameplayMusic();
-    // Play villain passive ability sound on battle start
-    if(v.id==="whisper")setTimeout(()=>playSfx("fud",0.4),500);
-    else if(v.id==="encryptkeeper")setTimeout(()=>playSfx("encrypt",0.4),500);
+    pendingGameRef.current={g,v};
+    // Show loading screen while images load
+    setMatchLoading(true); setLoadProgress(0);
+    const allCards=[...deck,...oDeck];
+    const urls=[...new Set(allCards.map(c=>c.img?buildImageUrl(c.img):null).filter(Boolean))];
+    let loaded=0;
+    const total=urls.length;
+    const checkDone=()=>{
+      loaded++;
+      setLoadProgress(Math.round(loaded/total*100));
+      if(loaded>=total) launchGame();
+    };
+    const launchGame=()=>{
+      if(!pendingGameRef.current)return;
+      const{g:pg,v:pv}=pendingGameRef.current;
+      pendingGameRef.current=null;
+      setMatchLoading(false);
+      setGame(pg);
+      startGameplayMusic();
+      if(pv.id==="whisper")setTimeout(()=>playSfx("fud",0.4),500);
+      else if(pv.id==="encryptkeeper")setTimeout(()=>playSfx("encrypt",0.4),500);
+    };
+    // Load all images with timeout safety
+    urls.forEach(url=>{
+      const img=new Image();
+      img.onload=checkDone;
+      img.onerror=checkDone; // count errors as loaded to not block
+      img.src=url;
+    });
+    // Safety timeout: start game after 8s even if some images haven't loaded
+    setTimeout(()=>{ if(pendingGameRef.current) launchGame(); },8000);
+    if(total===0) launchGame();
   };
   const play=()=>{
     if(!game)return;
@@ -1229,7 +1295,12 @@ function App(){
     } else {
       setRoundOutcome(null);
       playSfx("card-flip",0.4);
-      setGame(prepareRound(game));
+      const nextG=prepareRound(game);
+      setGame(nextG);
+      // Look-ahead: preload the next 6 upcoming cards from each deck
+      const ahead=6;
+      nextG.pp.slice(1,ahead+1).forEach(c=>{ if(c?.img){ const i=new Image(); i.src=buildImageUrl(c.img); } });
+      nextG.op.slice(1,ahead+1).forEach(c=>{ if(c?.img){ const i=new Image(); i.src=buildImageUrl(c.img); } });
     }
   };
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; playSfx("ability-trigger",0.5); return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
@@ -1420,7 +1491,16 @@ function App(){
       </div>
 
       {/* ═══════════ BATTLE TAB ═══════════ */}
-      {tab==="battle"&&<div className="space" style={{backgroundImage:`linear-gradient(rgba(15,23,42,0.82),rgba(15,23,42,0.88)),url(${ARENA_BG})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat",borderRadius:24,padding:16,margin:"-8px -4px"}}>
+      {tab==="battle"&&<div className="space" style={{backgroundImage:`linear-gradient(rgba(15,23,42,0.82),rgba(15,23,42,0.88)),url(${ARENA_BG})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat",borderRadius:24,padding:16,margin:"-8px -4px",position:"relative",minHeight:matchLoading?400:undefined}}>
+        {/* ── Loading screen overlay ── */}
+        {matchLoading&&<div className="match-loading-overlay">
+          <div className="match-loading-title">Loading Cards</div>
+          <div className="match-loading-bar-track">
+            <div className="match-loading-bar-fill" style={{width:loadProgress+"%"}}/>
+          </div>
+          <div className="match-loading-pct">{loadProgress}%</div>
+          <div className="match-loading-hint">Preparing your deck for battle…</div>
+        </div>}
         <div className={`ui-card${warDeclared?" fx-screen-shake":""}`} style={{textAlign:"center"}}>
           {/* Villain selector — full panel when no active game, collapsed during play */}
           {(!game||game.winner)?<div className="villain-panel">
