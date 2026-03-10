@@ -210,6 +210,9 @@
   @keyframes dramaticZoom { 0%{transform:scale(1)} 100%{transform:scale(1.08)} }
   .fx-final-zoom { animation: dramaticZoom 2s ease-in-out forwards; }
 
+  /* Villain selector card hover */
+  .villain-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
   /* Mobile adjustments for effects */
   @media (max-width: 640px) {
     .float-pts { font-size:24px; }
@@ -261,6 +264,18 @@ const MINT_SECRET = "heroes2026mint";
 const CARD_BACK = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/QmZ91Zj5PZUnL2F8X9Hg2QXPP3UMbqaDqrRCyMrq6zchRN";
 const ARENA_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeicmnni4ovgaj7qpzuvtjnbo6bxisugcrdzczakqsvyky4pm3d2gf4";
 const VICTORY_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeiaxuodno7rhjtra4flau6bmxdw6qbo7t5xeuqrtv3fe43iw7zjru4";
+
+/* ═══════════ BLOCKCHAIN VILLAINS ═══════════ */
+const VILLAIN_IMG_BASE = "QmQYXMWU7GSaQu1RoNwWEdFyoFiMF2t7GWD1jxCA2xi5rL/main";
+const VILLAINS = {
+  the_swarm:     { id:"the_swarm",     name:"The Swarm",       subtitle:"The Consuming Legion",    cardNum:38, color:"#06b6d4", ability:"Overwhelm", abilityDesc:"WAR uses 4 facedown cards instead of 3",                warCards:4,          difficulty:1, diffLabel:"Easy",       cfg:{ shields:0, shieldEffect:"halve", buffAccuracy:0.60, counterStrike:0.05, doubles:5, charges:6, peeks:5 } },
+  whisper:       { id:"whisper",       name:"Whisper",         subtitle:"The Inner Demon",         cardNum:31, color:"#94a3b8", ability:"FUD",       abilityDesc:"Your hero powers activate 15% less often",              fudPenalty:0.15,     difficulty:2, diffLabel:"Normal",     cfg:{ shields:1, shieldEffect:"halve", buffAccuracy:0.75, counterStrike:0.15, doubles:4, charges:5, peeks:4 } },
+  lady_iris:     { id:"lady_iris",     name:"Lady Iris",       subtitle:"The Lavicious Leech",     cardNum:33, color:"#e879f9", ability:"Leech",     abilityDesc:"25% chance to drain 1 ability charge when winning",     leechChance:0.25,    difficulty:3, diffLabel:"Hard",       cfg:{ shields:2, shieldEffect:"halve", buffAccuracy:0.85, counterStrike:0.25, doubles:3, charges:4, peeks:3 } },
+  encryptkeeper: { id:"encryptkeeper", name:"Encryptkeeper",   subtitle:"The Necromachinist",      cardNum:37, color:"#22c55e", ability:"Encrypt",   abilityDesc:"Opponent card strength hidden until reveal",            encrypted:true,      difficulty:4, diffLabel:"Insane",     cfg:{ shields:3, shieldEffect:"block", buffAccuracy:0.95, counterStrike:0.40, doubles:2, charges:3, peeks:2 } },
+  rez_phede:     { id:"rez_phede",     name:"Rez'Phede",      subtitle:"The Eternal Devourer",    cardNum:21, color:"#ef4444", ability:"Devour",    abilityDesc:"40% chance to steal 1 pt when winning",                 devourChance:0.40,   difficulty:5, diffLabel:"Impossible", cfg:{ shields:5, shieldEffect:"block", buffAccuracy:1.00, counterStrike:0.50, doubles:1, charges:3, peeks:1 } },
+};
+function villainImgUrl(v,side="front"){ return WAX_CONFIG.ipfsGateway+VILLAIN_IMG_BASE+"/"+(side==="front"?"front/common/"+v.cardNum+".jpg":"back/"+v.cardNum+"b.jpg"); }
+
 const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
 const DECK_SIZE = 50;
@@ -291,7 +306,7 @@ const HERO_POWER_NAMES = {
 /* Buff chance by rarity: chance to gain +1 strength (match next tier up) */
 const BUFF_CHANCE = { legendary:0.05, epic:0.1, rare:0.2, uncommon:0.35, common:0.5 };
 function getHeroPowerName(card){ return HERO_POWER_NAMES[normalizeHeroName(card?.name)] || null; }
-function rollBuff(card){ const chance=BUFF_CHANCE[card?.rarity]||0; if(chance<=0)return false; return Math.random()<chance; }
+function rollBuff(card,fudPenalty=0){ const chance=(BUFF_CHANCE[card?.rarity]||0)-fudPenalty; if(chance<=0)return false; return Math.random()<chance; }
 const ALL_HEROES = [
   "Bitcoin Bro","Brightstroke","Captain Crypto","Coin Commando","Courage",
   "CypherFunk","Data Avenger","Dynamic Defiant","Ethermage","Everlasting",
@@ -303,11 +318,6 @@ const ALL_HEROES = [
   "Soothe 'n Sayer","Stampede","Super Stomp","Supernova","The Chairman",
   "The Creatrix","The Crusader","The Emissary","The Oracle","The Prophet",
   "The Senator","The Wizard","Trilogy","Wyld Wrangler","X-Change",
-];
-const OPPONENTS = [
-  { id:"collector", name:"The Collector", description:"Balanced legal deck.", strategy:["legendary","epic","rare","uncommon","common"] },
-  { id:"eddie", name:"Epic Eddie", description:"Prefers epic-heavy builds.", strategy:["epic","rare","legendary","uncommon","common"] },
-  { id:"crusher", name:"Common Crusher", description:"Leans on low-rarity depth.", strategy:["common","uncommon","rare","epic","legendary"] },
 ];
 /* Mock deck removed — wallet login required to play */
 
@@ -427,12 +437,7 @@ function buildDeck(pool){
   }
   return [...picks.values()];
 }
-const DIFFICULTY_PRESETS = {
-  easy:   { shields:0, shieldEffect:"halve", buffAccuracy:0.70, counterStrike:0.10, doubles:5, charges:5, peeks:5, label:"Easy",   color:"#4ade80" },
-  normal: { shields:1, shieldEffect:"halve", buffAccuracy:0.85, counterStrike:0.20, doubles:3, charges:5, peeks:5, label:"Normal", color:"#67e8f9" },
-  hard:   { shields:3, shieldEffect:"block", buffAccuracy:1.00, counterStrike:0.30, doubles:2, charges:4, peeks:3, label:"Hard",   color:"#f87171" }
-};
-function createGame(pDeck,oDeck,cfg){ return { cfg, pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:cfg.charges, pManualBuff:false, oCharges:cfg.charges, oManualBuff:false, oCounterStrike:false, pPeeks:cfg.peeks, pPeeking:false, pDoubleDown:false, pDoubles:cfg.doubles, lastDoubleDown:false, oShields:cfg.shields, oShieldUsed:false }; }
+function createGame(pDeck,oDeck,cfg,villain){ return { cfg, villain, pp:shuffleArray(pDeck), op:shuffleArray(oDeck), tp:[], cur:null, reveal:false, round:0, winner:null, wfp:[], wfo:[], pPts:0, oPts:0, lastPtsWon:0, pCharges:cfg.charges, pManualBuff:false, oCharges:cfg.charges, oManualBuff:false, oCounterStrike:false, pPeeks:cfg.peeks, pPeeking:false, pDoubleDown:false, pDoubles:cfg.doubles, lastDoubleDown:false, oShields:cfg.shields, oShieldUsed:false, devoured:false, leeched:null }; }
 function npcDecideBuff(g,pCard,oCard){
   if(g.oCharges<=0)return false;
   // NPC occasionally misreads the situation based on difficulty
@@ -465,28 +470,32 @@ function npcDecideShield(g,ps,os,pile){
 }
 function prepareRound(g){
   if(g.winner)return g;
+  const vl=g.villain?VILLAINS[g.villain]:null;
+  const fud=vl?.fudPenalty||0;
+  const wc=vl?.warCards||3; // WAR cards consumed per side
+  const fd=wc-1; // facedown count
   if(g.tp.length===0){
     if(!g.pp[0]||!g.op[0])return{...g,winner:!g.pp[0]&&!g.op[0]?"tie":g.pp[0]?"player":"opponent"};
-    const pBuff=rollBuff(g.pp[0]), oBuff=rollBuff(g.op[0]);
+    const pBuff=rollBuff(g.pp[0],fud), oBuff=rollBuff(g.op[0]);
     const oBst=npcDecideBuff(g,g.pp[0],g.op[0]);
-    // Counter-Strike: if player boosted, NPC may auto-counter
     const counter=npcCounterStrike(g);
     const totalOBst=oBst||counter;
-    // Charge cost: only 1 charge even if both buff+counter would apply
     const chargeCost=totalOBst?1:0;
-    return{...g,cur:{p:g.pp[0],o:g.op[0]},pBuff,oBuff,oManualBuff:totalOBst,oCounterStrike:counter&&!oBst,oCharges:g.oCharges-chargeCost,reveal:true,wfp:[],wfo:[],pPeeking:false,oShieldUsed:false,lastDoubleDown:false};
+    return{...g,cur:{p:g.pp[0],o:g.op[0]},pBuff,oBuff,oManualBuff:totalOBst,oCounterStrike:counter&&!oBst,oCharges:g.oCharges-chargeCost,reveal:true,wfp:[],wfo:[],pPeeking:false,oShieldUsed:false,lastDoubleDown:false,devoured:false,leeched:null};
   }
-  if(g.pp.length<3||g.op.length<3)return{...g,winner:g.pp.length===g.op.length?"tie":g.pp.length>g.op.length?"player":"opponent"};
-  const pBuff=rollBuff(g.pp[2]), oBuff=rollBuff(g.op[2]);
-  const oBst=npcDecideBuff(g,g.pp[2],g.op[2]);
+  if(g.pp.length<wc||g.op.length<wc)return{...g,winner:g.pp.length===g.op.length?"tie":g.pp.length>g.op.length?"player":"opponent"};
+  const pBuff=rollBuff(g.pp[fd],fud), oBuff=rollBuff(g.op[fd]);
+  const oBst=npcDecideBuff(g,g.pp[fd],g.op[fd]);
   const counter=npcCounterStrike(g);
   const totalOBst=oBst||counter;
   const chargeCost=totalOBst?1:0;
-  return{...g,cur:{p:g.pp[2],o:g.op[2]},pBuff,oBuff,oManualBuff:totalOBst,oCounterStrike:counter&&!oBst,oCharges:g.oCharges-chargeCost,reveal:true,wfp:g.pp.slice(0,2),wfo:g.op.slice(0,2),pPeeking:false,oShieldUsed:false,lastDoubleDown:false};
+  return{...g,cur:{p:g.pp[fd],o:g.op[fd]},pBuff,oBuff,oManualBuff:totalOBst,oCounterStrike:counter&&!oBst,oCharges:g.oCharges-chargeCost,reveal:true,wfp:g.pp.slice(0,fd),wfo:g.op.slice(0,fd),pPeeking:false,oShieldUsed:false,lastDoubleDown:false,devoured:false,leeched:null};
 }
 function resolveRound(g){
   if(!g.cur||g.winner)return g;
-  const inWar=g.tp.length>0, consumed=inWar?3:1;
+  const vl=g.villain?VILLAINS[g.villain]:null;
+  const wc=vl?.warCards||3;
+  const inWar=g.tp.length>0, consumed=inWar?wc:1;
   const cpCards=inWar?[...g.wfp,g.cur.p]:[g.cur.p];
   const coCards=inWar?[...g.wfo,g.cur.o]:[g.cur.o];
   const npp=g.pp.slice(consumed), nop=g.op.slice(consumed);
@@ -494,29 +503,37 @@ function resolveRound(g){
   const ps=getCardStrength(g.cur.p)+(g.pBuff?1:0)+(g.pManualBuff?1:0), os=getCardStrength(g.cur.o)+(g.oBuff?1:0)+(g.oManualBuff?1:0);
   let fp=npp, fo=nop, nt=[];
   let pPts=g.pPts, oPts=g.oPts, lp=0;
-  // Only count as a new round if NOT resolving a WAR (WAR continues the same round)
   const rd=inWar?g.round:g.round+1;
-  // Double Down multiplier (applies to whoever wins this round's points)
   const ddMult=g.pDoubleDown?2:1;
-  // NPC Shield: strategically block a loss (effect depends on difficulty)
   const shieldUsed=ps>os&&npcDecideShield(g,ps,os,pile);
+  let devoured=false, leeched=null;
+  let pCharges=g.pCharges, pPeeks=g.pPeeks, pDoubles=g.pDoubles;
   if(shieldUsed){
     fp=[...npp,...pile];
     if(g.cfg.shieldEffect==="block"){ lp=0; }
     else{ const halfPts=Math.floor(pile.length*ddMult/2); pPts+=halfPts; lp=halfPts; }
   } else if(ps>os){ fp=[...npp,...pile]; pPts+=pile.length*ddMult; lp=pile.length*ddMult; }
-  else if(os>ps){ fo=[...nop,...pile]; oPts+=pile.length*ddMult; lp=pile.length*ddMult; }
-  else nt=pile; // Tie = WAR, always let it play out (even at round 50)
+  else if(os>ps){
+    fo=[...nop,...pile]; oPts+=pile.length*ddMult; lp=pile.length*ddMult;
+    // Villain: Devour — steal 1 pt from player on opponent win
+    if(vl?.devourChance && Math.random()<vl.devourChance && pPts>0){ pPts--; oPts++; devoured=true; }
+    // Villain: Leech — drain 1 random player ability charge
+    if(vl?.leechChance && Math.random()<vl.leechChance){
+      const drainable=[]; if(pCharges>0)drainable.push("boost"); if(pPeeks>0)drainable.push("peek"); if(pDoubles>0)drainable.push("double");
+      if(drainable.length>0){ const pick=drainable[Math.floor(Math.random()*drainable.length)]; if(pick==="boost")pCharges--; else if(pick==="peek")pPeeks--; else pDoubles--; leeched=pick; }
+    }
+  }
+  else nt=pile;
   let w=null;
   if(!fp.length&&!fo.length)w="tie";
   else if(!fp.length)w="opponent";
   else if(!fo.length)w="player";
   else if(rd>=MAX_ROUNDS&&nt.length===0)w=pPts>oPts?"player":oPts>pPts?"opponent":"tie";
-  return{cfg:g.cfg,pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges:g.pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks:g.pPeeks,pPeeking:false,pDoubleDown:false,pDoubles:g.pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed};
+  return{cfg:g.cfg,villain:g.villain,pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks,pPeeking:false,pDoubleDown:false,pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed,devoured,leeched};
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
-function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,counterStrike=false,outcome=null,doubleDown=false,peeking=false,shieldUsed=false,isWinner=false,warActive=false}){
+function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,counterStrike=false,outcome=null,doubleDown=false,peeking=false,shieldUsed=false,isWinner=false,warActive=false,encrypted=false}){
   const r=card?.rarity||"common";
   const baseStr=getCardStrength(card);
   const totalBuff=(buffed?1:0)+(manualBuff?1:0);
@@ -560,12 +577,13 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                   <span className={`badge badge-${r}`}>{titleCase(r)}</span>
                 </div>
-                <div className={`str-circle str-${r}`} style={{width:80,height:80,fontSize:36,margin:0}}>{displayStr}</div>
-                <div style={{fontSize:18,color:"#94a3b8"}}>STR: {displayStr}{totalBuff>0?` (${baseStr}+${totalBuff})`:""}</div>
-                {buffed&&powerName&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(74,222,128,0.15)",border:"2px solid rgba(74,222,128,0.5)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Power activated! +1 STR</span></div>}
-                {manualBuff&&!counterStrike&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(99,102,241,0.15)",border:"2px solid rgba(129,140,248,0.5)",color:"#a5b4fc",fontWeight:700}}>Trigger Power!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Manual boost! +1 STR</span></div>}
-                {counterStrike&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(239,68,68,0.15)",border:"2px solid rgba(239,68,68,0.5)",color:"#f87171",fontWeight:700}}>⚡ Counter-Strike!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Countered your boost! +1 STR</span></div>}
-                {!buffed&&!manualBuff&&powerName&&<div style={{fontSize:16,color:"#64748b"}}>{powerName}</div>}
+                <div className={`str-circle str-${r}`} style={{width:80,height:80,fontSize:36,margin:0}}>{encrypted?"?":displayStr}</div>
+                <div style={{fontSize:18,color:"#94a3b8"}}>{encrypted?"STR: ???":`STR: ${displayStr}${totalBuff>0?` (${baseStr}+${totalBuff})`:""}`}</div>
+                {!encrypted&&buffed&&powerName&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(74,222,128,0.15)",border:"2px solid rgba(74,222,128,0.5)",color:"#4ade80",fontWeight:700}}>{powerName}<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Power activated! +1 STR</span></div>}
+                {!encrypted&&manualBuff&&!counterStrike&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(99,102,241,0.15)",border:"2px solid rgba(129,140,248,0.5)",color:"#a5b4fc",fontWeight:700}}>Trigger Power!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Manual boost! +1 STR</span></div>}
+                {!encrypted&&counterStrike&&<div style={{fontSize:20,padding:"8px 12px",borderRadius:10,background:"rgba(239,68,68,0.15)",border:"2px solid rgba(239,68,68,0.5)",color:"#f87171",fontWeight:700}}>⚡ Counter-Strike!<br/><span style={{fontWeight:400,fontSize:17,opacity:0.9}}>Countered your boost! +1 STR</span></div>}
+                {encrypted&&<div style={{fontSize:18,padding:"8px 12px",borderRadius:10,background:"rgba(34,197,94,0.1)",border:"2px solid rgba(34,197,94,0.4)",color:"#22c55e",fontWeight:700}}>🔒 Encrypted<br/><span style={{fontWeight:400,fontSize:15,opacity:0.9}}>Strength hidden</span></div>}
+                {!encrypted&&!buffed&&!manualBuff&&powerName&&<div style={{fontSize:16,color:"#64748b"}}>{powerName}</div>}
                 <div style={{fontSize:14,color:"#64748b"}}>#{card.templateId}</div>
               </div>
             </div>):(<img className="card-back" src={CARD_BACK} alt="back"/>)}
@@ -589,11 +607,10 @@ function App(){
   const [tab,setTab]=useState("collection");
   const [ownedCards,setOwnedCards]=useState([]);
   const [deck,setDeck]=useState([]);
-  const [oppId,setOppId]=useState("collector");
+  const [villainId,setVillainId]=useState(()=>{ try{ return localStorage.getItem("bh_war_villain")||"the_swarm"; }catch(e){ return "the_swarm"; } });
+  const saveVillain=(id)=>{ setVillainId(id); try{ localStorage.setItem("bh_war_villain",id); }catch(e){} };
   const [game,setGame]=useState(null);
   const [badgeNotif,setBadgeNotif]=useState(null);
-  const [difficulty,setDifficulty]=useState(()=>{ try{ return localStorage.getItem("bh_war_difficulty")||"normal"; }catch(e){ return "normal"; } });
-  const saveDifficulty=(d)=>{ setDifficulty(d); try{ localStorage.setItem("bh_war_difficulty",d); }catch(e){} };
 
   // --- Battle Effects State ---
   const [roundOutcome,setRoundOutcome]=useState(null); // "win"|"lose"|"tie"
@@ -934,7 +951,7 @@ function App(){
     mintBadge("first_match");
   },[game?.winner]);
 
-  const opp=OPPONENTS.find(o=>o.id===oppId)||OPPONENTS[0];
+  const villain=VILLAINS[villainId]||VILLAINS.the_swarm;
   const dc=countByRarity(deck);
   const fill=Math.min(100,Math.round(deck.length/DECK_SIZE*100));
   const pLeft=game?.pp.length??deck.length;
@@ -943,7 +960,7 @@ function App(){
   const totalPts=(game?.pPts??0)+(game?.oPts??0);
   const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
-  const startBattle=()=>{ if(!deck.length)return; setShowConfetti(false); setRoundOutcome(null); setGame(createGame(deck,buildDeck(ownedCards),DIFFICULTY_PRESETS[difficulty])); };
+  const startBattle=()=>{ if(!deck.length)return; setShowConfetti(false); setRoundOutcome(null); const v=VILLAINS[villainId]||VILLAINS.the_swarm; setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId)); };
   const play=()=>{
     if(!game)return;
     if(game.reveal){
@@ -981,10 +998,12 @@ function App(){
     if(game.oCounterStrike)extras.push("⚡ Counter-Strike!");
     if(game.oShieldUsed)extras.push("🛡️ Shield blocked!");
     if(lp>0&&game.lastDoubleDown)extras.push("🎲 Double Down!");
+    if(game.devoured)extras.push("👁️ Devoured! -1 pt stolen");
+    if(game.leeched)extras.push("🧛 Leeched! Lost 1 "+game.leeched+" charge");
     const extraLine=extras.length>0?<div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginTop:4}}>{extras.join(" ")}</div>:null;
     if(game.oShieldUsed)return<div className="result-win text-center slide-up">🛡️ You win, but Shield {game.cfg.shieldEffect==="block"?"blocked all":"halved"} your points! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
-    if(os>ps)return<div className="result-lose text-center slide-up">Opponent wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
+    if(os>ps)return<div className="result-lose text-center slide-up">{(game.villain?VILLAINS[game.villain]?.name:"Opponent")||"Opponent"} wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os}){extraLine}</div>;
   })():null;
 
@@ -1088,12 +1107,15 @@ function App(){
               <li>This means a Common card with a power activation can beat an Uncommon — every card matters!</li>
             </ul>
 
-            {/* Difficulty */}
-            <div style={{fontSize:19,fontWeight:700,color:"#e879f9",marginBottom:6}}>Difficulty Levels</div>
+            {/* Villains & Difficulty */}
+            <div style={{fontSize:19,fontWeight:700,color:"#ef4444",marginBottom:6}}>Blockchain Villains</div>
             <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
-              <li><strong style={{color:"#4ade80"}}>Easy</strong> — No shields, weaker opponent AI, more Double Downs and abilities for you.</li>
-              <li><strong style={{color:"#67e8f9"}}>Normal</strong> — Balanced play with 1 shield (halves points), smart opponent, standard abilities.</li>
-              <li><strong style={{color:"#f87171"}}>Hard</strong> — 3 shields (block all points), perfect opponent AI, stronger counters, fewer abilities for you.</li>
+              <li>Choose one of <strong>5 Blockchain Villains</strong> to battle against. Each has a unique ability and difficulty level — the villain <em>is</em> the difficulty.</li>
+              <li><strong style={{color:"#06b6d4"}}>The Swarm</strong> ★☆☆☆☆ <em>(Easy)</em> — <em>Overwhelm</em>: WAR uses 4 facedown cards instead of 3. Forgiving AI with no shields and low counter-strike.</li>
+              <li><strong style={{color:"#94a3b8"}}>Whisper</strong> ★★☆☆☆ <em>(Normal)</em> — <em>FUD</em>: Your hero powers activate 15% less often. Moderate AI with 1 shield and 15% counter-strike.</li>
+              <li><strong style={{color:"#e879f9"}}>Lady Iris</strong> ★★★☆☆ <em>(Hard)</em> — <em>Leech</em>: 25% chance to drain 1 ability charge when she wins. Aggressive AI with 2 shields and 25% counter-strike.</li>
+              <li><strong style={{color:"#22c55e"}}>Encryptkeeper</strong> ★★★★☆ <em>(Insane)</em> — <em>Encrypt</em>: Opponent card strength hidden during reveal. Near-perfect AI with 3 shields that fully block points and 40% counter-strike — use Peek to counter!</li>
+              <li><strong style={{color:"#ef4444"}}>Rez'Phede</strong> ★★★★★ <em>(Impossible)</em> — <em>Devour</em>: 40% chance to steal 1 point when winning. Perfect AI with 5 shields that fully block points and 50% counter-strike. Only 1 peek and 1 double down available. Good luck.</li>
             </ul>
 
             {/* Your Abilities */}
@@ -1107,9 +1129,9 @@ function App(){
             {/* Opponent Abilities */}
             <div style={{fontSize:19,fontWeight:700,color:"#fda4af",marginBottom:6}}>Opponent Abilities</div>
             <ul style={{fontSize:17,color:"#cbd5e1",lineHeight:1.7,paddingLeft:24,marginBottom:16}}>
-              <li><strong>⚡ Buffs</strong> — The opponent boosts strategically when losing by 1 or tied. Accuracy depends on difficulty.</li>
-              <li><strong>⚡ Counter-Strike</strong> — When you use Trigger Power, the opponent may auto-counter with their own +1 STR. Chance varies by difficulty.</li>
-              <li><strong>🛡️ Shield</strong> — The opponent can reduce or block your points on a big win. Number of uses and effect depend on difficulty.</li>
+              <li><strong>⚡ Buffs</strong> — The villain boosts strategically when losing by 1 or tied. Smarter villains are more accurate.</li>
+              <li><strong>⚡ Counter-Strike</strong> — When you use Trigger Power, the villain may auto-counter with their own +1 STR. Tougher villains counter more often.</li>
+              <li><strong>🛡️ Shield</strong> — The villain can reduce or fully block your points on a big win. Easy/Normal/Hard villains halve the points; Insane/Impossible villains block them entirely. Harder villains have more shields.</li>
             </ul>
 
             {/* Scoring & Winning */}
@@ -1146,35 +1168,46 @@ function App(){
       {/* ═══════════ BATTLE TAB ═══════════ */}
       {tab==="battle"&&<div className="space" style={{backgroundImage:`linear-gradient(rgba(15,23,42,0.82),rgba(15,23,42,0.88)),url(${ARENA_BG})`,backgroundSize:"cover",backgroundPosition:"center",backgroundRepeat:"no-repeat",borderRadius:24,padding:16,margin:"-8px -4px"}}>
         <div className={`ui-card${warDeclared?" fx-screen-shake":""}`} style={{textAlign:"center"}}>
-          {/* Difficulty selector — only when no active game */}
-          {(!game||game.winner)&&<div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:12,alignItems:"center"}}>
-            <span style={{fontSize:16,fontWeight:700,color:"#94a3b8",marginRight:4}}>Difficulty:</span>
-            {Object.entries(DIFFICULTY_PRESETS).map(([key,cfg])=><button key={key} className="btn" onClick={()=>saveDifficulty(key)} style={{background:difficulty===key?cfg.color+"22":"transparent",border:"2px solid "+(difficulty===key?cfg.color:"rgba(255,255,255,0.12)"),color:difficulty===key?cfg.color:"#64748b",fontSize:17,fontWeight:difficulty===key?800:600,padding:"8px 22px",borderRadius:14,transition:"all .2s"}}>{cfg.label}</button>)}
+          {/* Villain selector — only when no active game */}
+          {(!game||game.winner)&&<div style={{marginBottom:12}}>
+            <div style={{fontSize:18,fontWeight:800,color:"#f1f5f9",marginBottom:8,textAlign:"center"}}>Choose Your Villain</div>
+            <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+              {Object.values(VILLAINS).map(v=>(
+                <div key={v.id} className="villain-card" onClick={()=>saveVillain(v.id)} style={{cursor:"pointer",width:130,padding:8,borderRadius:14,border:`2px solid ${villainId===v.id?v.color:"rgba(255,255,255,0.1)"}`,background:villainId===v.id?v.color+"15":"rgba(255,255,255,0.03)",transition:"all 0.2s",textAlign:"center"}}>
+                  <img src={villainImgUrl(v)} alt={v.name} style={{width:110,height:150,objectFit:"cover",borderRadius:10,marginBottom:4}} onError={(e)=>{e.target.style.display="none"}}/>
+                  <div style={{fontSize:14,fontWeight:800,color:v.color,lineHeight:1.2}}>{v.name}</div>
+                  <div style={{fontSize:11,color:"#94a3b8"}}>{v.subtitle}</div>
+                  <div style={{fontSize:13,color:"#fbbf24",letterSpacing:1}}>{"★".repeat(v.difficulty)+"☆".repeat(5-v.difficulty)}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:v.color,marginTop:2}}>{v.ability}</div>
+                  <div style={{fontSize:10,color:"#64748b",lineHeight:1.2}}>{v.abilityDesc}</div>
+                </div>
+              ))}
+            </div>
           </div>}
           <div className="flex-wrap" style={{justifyContent:"center",gap:10,marginBottom:10}}>
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
-            {game&&!game.winner&&<span className="badge" style={{background:game.cfg.color+"22",color:game.cfg.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+game.cfg.color+"44"}}>{game.cfg.label}</span>}
+            {game&&!game.winner&&(()=>{const gv=game.villain?VILLAINS[game.villain]:null;return gv?<span className="badge" style={{background:gv.color+"22",color:gv.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+gv.color+"44"}}>vs {gv.name} {"★".repeat(gv.difficulty)+"☆".repeat(5-gv.difficulty)}</span>:null;})()}
           </div>
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:8}}>Go to Collection & Deck to build your deck first.</div>}
           {/* ── Score bar ── */}
           {game&&<div style={{marginBottom:8,position:"relative"}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:20,color:"#94a3b8",marginBottom:4}}>
-              <span>You: {game.pPts} pts ({pLeft})</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>Opp: {game.oPts} pts ({oLeft})</span>
+              <span>You: {game.pPts} pts ({pLeft})</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>{(game.villain?VILLAINS[game.villain]?.name:"Opp")||"Opp"}: {game.oPts} pts ({oLeft})</span>
             </div>
             <div className="score-track"><div className={`score-fill${scoreFlash?" fx-score-flash":""}`} style={{width:pPct+"%"}}/></div>
             {floatingPts.map(fp=><div key={fp.id} className={`float-pts pts-${fp.type}`} style={{left:fp.side==="player"?"15%":"75%",top:"-10px"}}>+{fp.amount}</div>)}
           </div>}
           {/* ── WAR banner ── */}
-          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:8,padding:"10px 14px",fontSize:20}}>WAR! Three cards go down. The third decides the pile.</div>}
+          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:8,padding:"10px 14px",fontSize:20}}>WAR! {(()=>{const gv=game?.villain?VILLAINS[game.villain]:null;const wc=gv?.warCards||3;return wc+" cards go down. The last decides the pile."+(wc>3?" ("+gv.name+" Overwhelm!)":"");})()}</div>}
           {/* ── Round result ── */}
           {roundResult}
           {/* ── Winner ── */}
           {game?.winner&&<div style={{backgroundImage:`linear-gradient(rgba(15,23,42,0.6),rgba(15,23,42,0.75)),url(${VICTORY_BG})`,backgroundSize:"cover",backgroundPosition:"center",borderRadius:20,padding:"24px 16px",marginTop:8}}>
   <div className="win-text" style={{fontSize:32}}>
-  {game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}
+  {game.winner==="player"?"You Win!":game.winner==="opponent"?(VILLAINS[game.villain]?.name||"Opponent")+" Wins!":"It's a Draw!"}
   </div>
-  <div style={{fontSize:20,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final: You {game.pPts} - {game.oPts} Opp{game.round>=MAX_ROUNDS?" (Round limit)":" (All cards captured)"}</div>
+  <div style={{fontSize:20,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final: You {game.pPts} - {game.oPts} {VILLAINS[game.villain]?.name||"Opp"}{game.round>=MAX_ROUNDS?" (Round limit)":" (All cards captured)"}</div>
 </div>}
           <Confetti show={showConfetti}/>
         </div>
@@ -1183,10 +1216,14 @@ function App(){
           <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":(game?.pDoubleDown?"Your card (DOUBLE DOWN!)":"Your card")} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff} outcome={roundOutcome} doubleDown={!!game?.pDoubleDown} isWinner={game?.winner==="player"} warActive={isWar&&game?.reveal}/>
           {(()=>{
             const isPeeking=game?.pPeeking&&!game?.reveal;
-            const peekCard=isPeeking?((game?.tp?.length>0)?game?.op?.[2]:game?.op?.[0]):null;
-            if(peekCard)return <FlipCard card={peekCard} facedown={false} label="Peeking at opponent's next card" peeking={true}/>;
+            const gv=game?.villain?VILLAINS[game.villain]:null;
+            const wci=(gv?.warCards||3)-1;
+            const peekCard=isPeeking?((game?.tp?.length>0)?game?.op?.[wci]:game?.op?.[0]):null;
+            const vName=gv?.name||"Opponent";
+            if(peekCard)return <FlipCard card={peekCard} facedown={false} label={"Peeking at "+vName+"'s next card"} peeking={true}/>;
             const oppOutcome=roundOutcome==="win"?"lose":roundOutcome==="lose"?"win":roundOutcome;
-            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal}/>;
+            const isEncrypted=!!gv?.encrypted&&!!game?.reveal;
+            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?vName+"'s deciding card":vName+"'s card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal} encrypted={isEncrypted}/>;
           })()}
         </div>
         {/* ── Compact ability toolbar ── */}
@@ -1197,7 +1234,8 @@ function App(){
             <button className="btn" onClick={doubleDown} disabled={!game||game.winner||game.reveal||game.pDoubleDown||game.pDoubles<=0} style={{background:game.pDoubleDown?"#059669":game.pDoubles>0?"#d97706":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>🎲 {game.pDoubleDown?"Doubled!":"Double"} <span style={{opacity:0.7,fontSize:14}}>({game.pDoubles})</span></button>
           </div>
           <div style={{display:"flex",justifyContent:"center",gap:16,fontSize:15,color:"#94a3b8",flexWrap:"wrap"}}>
-            <span style={{color:"#fda4af"}}>Opp: ⚡ Buffs ({game.oCharges})</span>
+            {(()=>{const gv=game.villain?VILLAINS[game.villain]:null;return gv?<span style={{color:gv.color,fontWeight:700}}>{gv.name}: {gv.ability}</span>:null;})()}
+            <span style={{color:"#fda4af"}}>⚡ Buffs ({game.oCharges})</span>
             <span style={{color:"#fda4af"}}>⚡ Counter ({Math.round(game.cfg.counterStrike*100)}%)</span>
             {game.cfg.shields>0&&<span style={{color:"#fda4af"}}>🛡️ Shield ({game.oShields})</span>}
           </div>
