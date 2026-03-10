@@ -133,6 +133,89 @@
   .slide-up { animation: slideUp 0.35s ease-out; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+  /* ═══════════ BATTLE EFFECTS ═══════════ */
+  /* Card reveal glow bursts */
+  @keyframes glowBurstGold { 0%{box-shadow:0 0 0 rgba(251,191,36,0)} 30%{box-shadow:0 0 60px 20px rgba(251,191,36,0.6)} 100%{box-shadow:0 0 40px rgba(251,191,36,0.35)} }
+  @keyframes glowBurstRed { 0%{box-shadow:0 0 0 rgba(239,68,68,0)} 30%{box-shadow:0 0 60px 20px rgba(239,68,68,0.5)} 100%{box-shadow:0 0 20px rgba(239,68,68,0.15)} }
+  @keyframes glowBurstWhite { 0%{box-shadow:0 0 0 rgba(255,255,255,0)} 30%{box-shadow:0 0 50px 15px rgba(255,255,255,0.5)} 100%{box-shadow:0 0 15px rgba(255,255,255,0.1)} }
+  .glow-burst-win { animation: glowBurstGold 600ms ease-out forwards; }
+  .glow-burst-lose { animation: glowBurstRed 600ms ease-out forwards; }
+  .glow-burst-tie { animation: glowBurstWhite 600ms ease-out forwards; }
+
+  /* Rarity shimmer — legendary traveling light, epic subtle pulse */
+  @keyframes legendaryShimmer { 0%{left:-100%} 100%{left:200%} }
+  .shimmer-legendary .flip-back { position: relative; overflow: hidden; }
+  .shimmer-legendary .flip-back::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(251,191,36,0.25),transparent); animation:legendaryShimmer 2.5s ease-in-out infinite; pointer-events:none; z-index:10; }
+  @keyframes epicPulse { 0%,100%{box-shadow:0 0 35px rgba(168,85,247,0.32)} 50%{box-shadow:0 0 55px rgba(168,85,247,0.55)} }
+  .shimmer-epic { animation: epicPulse 2s ease-in-out infinite; }
+
+  /* Win/lose card reactions — applied to container, not flip-inner, to avoid transform conflicts */
+  @keyframes cardWinPop { 0%{transform:scale(1)} 50%{transform:scale(1.07)} 100%{transform:scale(1.04)} }
+  @keyframes cardLoseShrink { 0%{transform:scale(1);opacity:1} 100%{transform:scale(0.94);opacity:0.55} }
+  .card-reaction-win { animation: cardWinPop 500ms ease-out forwards; }
+  .card-reaction-lose { animation: cardLoseShrink 400ms ease-out forwards; }
+
+  /* Trigger Power — electric crackle border */
+  @keyframes electricPulse { 0%,100%{box-shadow:0 0 10px rgba(99,102,241,0.3),inset 0 0 10px rgba(99,102,241,0.1);border-color:rgba(129,140,248,0.5)} 25%{box-shadow:0 0 25px rgba(99,102,241,0.7),inset 0 0 15px rgba(99,102,241,0.3);border-color:rgba(129,140,248,1)} 50%{box-shadow:0 0 8px rgba(99,102,241,0.2);border-color:rgba(129,140,248,0.3)} 75%{box-shadow:0 0 30px rgba(99,102,241,0.8),inset 0 0 20px rgba(99,102,241,0.4);border-color:rgba(167,139,250,1)} }
+  .fx-trigger-power { animation: electricPulse 800ms ease-in-out infinite; border:2px solid rgba(129,140,248,0.8); }
+
+  /* Counter-Strike — red lightning flash overlay */
+  @keyframes counterFlash { 0%{opacity:0} 15%{opacity:1;background:rgba(239,68,68,0.3)} 30%{opacity:0} 45%{opacity:1;background:rgba(239,68,68,0.2)} 60%{opacity:0} 75%{opacity:0.6;background:rgba(239,68,68,0.15)} 100%{opacity:0} }
+  .fx-counter-strike { position:absolute; inset:0; z-index:20; pointer-events:none; border-radius:16px; animation:counterFlash 700ms ease-out forwards; }
+
+  /* Shield barrier — translucent dome */
+  @keyframes shieldBarrier { 0%{opacity:0;transform:scaleY(0.5)} 20%{opacity:0.8;transform:scaleY(1)} 80%{opacity:0.6;transform:scaleY(1)} 100%{opacity:0;transform:scaleY(1)} }
+  .fx-shield { position:absolute; inset:0; z-index:20; pointer-events:none; border-radius:16px; background:linear-gradient(180deg,rgba(34,211,238,0.25),rgba(34,211,238,0.05)); border:2px solid rgba(34,211,238,0.5); animation:shieldBarrier 1.2s ease-out forwards; }
+
+  /* Double Down — golden pulse */
+  @keyframes doubleDownPulse { 0%,100%{box-shadow:0 0 20px rgba(251,191,36,0.2)} 50%{box-shadow:0 0 50px rgba(251,191,36,0.6),0 0 100px rgba(251,191,36,0.2)} }
+  .fx-double-down { animation: doubleDownPulse 1s ease-in-out infinite; }
+
+  /* Peek — ripple/eye-opening reveal */
+  @keyframes peekRipple { 0%{clip-path:ellipse(0% 0% at 50% 50%);opacity:0} 50%{clip-path:ellipse(60% 50% at 50% 50%);opacity:1} 100%{clip-path:ellipse(100% 100% at 50% 50%);opacity:1} }
+  .fx-peek .flip-back { animation: peekRipple 600ms ease-out forwards; }
+
+  /* WAR — screen shake */
+  @keyframes screenShake { 0%,100%{transform:translateX(0)} 10%{transform:translateX(-6px) translateY(2px)} 20%{transform:translateX(5px) translateY(-3px)} 30%{transform:translateX(-4px) translateY(1px)} 40%{transform:translateX(6px) translateY(-2px)} 50%{transform:translateX(-3px) translateY(3px)} 60%{transform:translateX(4px)} 70%{transform:translateX(-2px)} 80%{transform:translateX(3px)} 90%{transform:translateX(-1px)} }
+  .fx-screen-shake { animation: screenShake 500ms ease-out; }
+
+  /* WAR banner slam-in */
+  @keyframes bannerSlam { 0%{transform:scale(3) rotate(-5deg);opacity:0} 50%{transform:scale(1.1) rotate(1deg);opacity:1} 70%{transform:scale(0.95) rotate(0deg)} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+  .war-banner.fx-banner-slam { animation: bannerSlam 600ms cubic-bezier(0.22,1,0.36,1) forwards, pulse-glow 1.2s ease-in-out infinite 600ms; }
+
+  /* WAR facedown fan-out stagger */
+  .war-facedown.fx-fan-out img { opacity:0; animation: slideUp 300ms ease-out forwards; }
+  .war-facedown.fx-fan-out img:nth-child(1) { animation-delay:0ms; }
+  .war-facedown.fx-fan-out img:nth-child(2) { animation-delay:150ms; }
+  .war-facedown.fx-fan-out img:nth-child(3) { animation-delay:300ms; }
+
+  /* Floating points — drift up and fade */
+  @keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1)} 70%{opacity:0.8;transform:translateY(-60px) scale(1.1)} 100%{opacity:0;transform:translateY(-90px) scale(0.9)} }
+  .float-pts { position:absolute; font-size:32px; font-weight:900; pointer-events:none; z-index:30; animation:floatUp 1.2s ease-out forwards; text-shadow:0 2px 8px rgba(0,0,0,0.5); }
+  .float-pts.pts-win { color:#4ade80; }
+  .float-pts.pts-lose { color:#f87171; }
+  .float-pts.pts-tie { color:#fde68a; }
+
+  /* Score bar flash */
+  @keyframes scoreFlash { 0%{filter:brightness(1)} 50%{filter:brightness(2.5)} 100%{filter:brightness(1)} }
+  .score-fill.fx-score-flash { animation: scoreFlash 400ms ease-out; }
+
+  /* Confetti */
+  @keyframes confettiFall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+  .confetti-container { position:fixed; inset:0; pointer-events:none; z-index:100; overflow:hidden; }
+  .confetti-piece { position:absolute; border-radius:2px; animation:confettiFall var(--fall-duration,3s) linear forwards; animation-delay:var(--fall-delay,0s); left:var(--fall-x,50%); opacity:0.9; }
+
+  /* Winner — dramatic final card zoom (on container to avoid transform conflict) */
+  @keyframes dramaticZoom { 0%{transform:scale(1)} 100%{transform:scale(1.08)} }
+  .fx-final-zoom { animation: dramaticZoom 2s ease-in-out forwards; }
+
+  /* Mobile adjustments for effects */
+  @media (max-width: 640px) {
+    .float-pts { font-size:24px; }
+    .confetti-piece { width:7px!important; height:5px!important; }
+  }
+
   .war-facedown { display: flex; justify-content: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; }
   .war-facedown img { height: 100px; width: 70px; object-fit: contain; border-radius: 10px; background: #000; }
   .war-facedown-label { text-align: center; font-size: 17px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
@@ -431,7 +514,7 @@ function resolveRound(g){
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
-function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,counterStrike=false}){
+function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,counterStrike=false,outcome=null,doubleDown=false,peeking=false,shieldUsed=false,isWinner=false,warActive=false}){
   const r=card?.rarity||"common";
   const baseStr=getCardStrength(card);
   const totalBuff=(buffed?1:0)+(manualBuff?1:0);
@@ -441,14 +524,29 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
   const imgUrl=card?buildImageUrl(card.img):null;
   // Reset loaded state when card changes
   useEffect(()=>{ setImgLoaded(false); },[imgUrl]);
+  const flipped=!facedown&&imgLoaded;
+  const flipClasses=[
+    "flip-inner",
+    flipped?"flipped":"",
+    flipped?"glow-"+r:"",
+    flipped&&r==="legendary"?"shimmer-legendary":"",
+    flipped&&r==="epic"?"shimmer-epic":"",
+    outcome==="win"?"glow-burst-win":"",
+    outcome==="lose"?"glow-burst-lose":"",
+    outcome==="tie"?"glow-burst-tie":"",
+    manualBuff&&!counterStrike?"fx-trigger-power":"",
+    doubleDown?"fx-double-down":"",
+  ].filter(Boolean).join(" ");
   return(
     <div className="slide-up">
       {label&&<div className="owner-label">{label}</div>}
-      {warFD.length>0&&<div style={{marginBottom:10}}><div className="war-facedown-label">WAR face-down cards</div><div className="war-facedown">{warFD.map((c,i)=><img key={i} src={CARD_BACK} alt="facedown"/>)}</div></div>}
-      <div className="flip-container">
-        <div className={`flip-inner ${!facedown&&imgLoaded?"flipped":""} ${!facedown&&imgLoaded?"glow-"+r:""}`}>
+      {warFD.length>0&&<div style={{marginBottom:10}}><div className="war-facedown-label">WAR face-down cards</div><div className={`war-facedown${warActive?" fx-fan-out":""}`}>{warFD.map((c,i)=><img key={i} src={CARD_BACK} alt="facedown"/>)}</div></div>}
+      <div className={`flip-container${outcome==="win"?" card-reaction-win":""}${outcome==="lose"?" card-reaction-lose":""}${isWinner?" fx-final-zoom":""}`} style={{position:"relative"}}>
+        {counterStrike&&<div className="fx-counter-strike"/>}
+        {shieldUsed&&<div className="fx-shield"/>}
+        <div className={flipClasses}>
           <div className="flip-face"><img className="card-back" src={CARD_BACK} alt="back"/></div>
-          <div className="flip-face flip-back" style={{padding:8}}>
+          <div className={`flip-face flip-back${peeking?" fx-peek":""}`} style={{padding:8}}>
             {card?(<div style={{display:"flex",gap:24,width:"100%",height:"100%",alignItems:"center",padding:"0 8px"}}>
               {/* Left: full card image, fitted to show entire card */}
               <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)"}}>
@@ -476,6 +574,14 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
   );
 }
 
+/* ═══════════ CONFETTI ═══════════ */
+const CONFETTI_COLORS=['#fbbf24','#f87171','#4ade80','#67e8f9','#a78bfa','#f0abfc','#fde68a','#60a5fa'];
+function Confetti({show}){
+  const pieces=useMemo(()=>Array.from({length:50},(_,i)=>({id:i,color:CONFETTI_COLORS[i%CONFETTI_COLORS.length],x:Math.random()*100,delay:Math.random()*2,duration:2+Math.random()*2,w:6+Math.random()*8,h:4+Math.random()*5,rot:Math.random()*360})),[]);
+  if(!show)return null;
+  return(<div className="confetti-container">{pieces.map(p=><div key={p.id} className="confetti-piece" style={{"--fall-x":p.x+"%","--fall-delay":p.delay+"s","--fall-duration":p.duration+"s",width:p.w,height:p.h,backgroundColor:p.color,transform:"rotate("+p.rot+"deg)"}}/>)}</div>);
+}
+
 /* ═══════════ MAIN APP ═══════════ */
 function App(){
   const [tab,setTab]=useState("collection");
@@ -486,6 +592,19 @@ function App(){
   const [badgeNotif,setBadgeNotif]=useState(null);
   const [difficulty,setDifficulty]=useState(()=>{ try{ return localStorage.getItem("bh_war_difficulty")||"normal"; }catch(e){ return "normal"; } });
   const saveDifficulty=(d)=>{ setDifficulty(d); try{ localStorage.setItem("bh_war_difficulty",d); }catch(e){} };
+
+  // --- Battle Effects State ---
+  const [roundOutcome,setRoundOutcome]=useState(null); // "win"|"lose"|"tie"
+  const [floatingPts,setFloatingPts]=useState([]);
+  const [scoreFlash,setScoreFlash]=useState(false);
+  const [warDeclared,setWarDeclared]=useState(false);
+  const [showConfetti,setShowConfetti]=useState(false);
+  const floatIdRef=useRef(0);
+  function addFloatingPts(amount,type,side){
+    const id=++floatIdRef.current;
+    setFloatingPts(prev=>[...prev,{id,amount,type,side}]);
+    setTimeout(()=>setFloatingPts(prev=>prev.filter(p=>p.id!==id)),1300);
+  }
 
   // --- Persistent Stats (localStorage per account) ---
   function getStatsKey(){ return walletAccount ? "bh_war_stats_"+walletAccount : demoMode ? "bh_war_stats_demo" : null; }
@@ -822,8 +941,26 @@ function App(){
   const totalPts=(game?.pPts??0)+(game?.oPts??0);
   const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
-  const startBattle=()=>{ if(!deck.length)return; setGame(createGame(deck,buildDeck(ownedCards),DIFFICULTY_PRESETS[difficulty])); };
-  const play=()=>{ setGame(g=>{ if(!g)return g; return g.reveal?resolveRound(g):prepareRound(g); }); };
+  const startBattle=()=>{ if(!deck.length)return; setShowConfetti(false); setRoundOutcome(null); setGame(createGame(deck,buildDeck(ownedCards),DIFFICULTY_PRESETS[difficulty])); };
+  const play=()=>{
+    if(!game)return;
+    if(game.reveal){
+      // Resolve phase — compute outcome and trigger effects
+      const next=resolveRound(game);
+      const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0);
+      const os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
+      if(ps>os){ setRoundOutcome("win"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"win","player"); }
+      else if(os>ps){ setRoundOutcome("lose"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"lose","opponent"); }
+      else { setRoundOutcome("tie"); setWarDeclared(true); }
+      if(next.lastPtsWon>0)setScoreFlash(true);
+      setTimeout(()=>{ setRoundOutcome(null); setWarDeclared(false); setScoreFlash(false); },1500);
+      if(next.winner==="player")setTimeout(()=>setShowConfetti(true),400);
+      setGame(next);
+    } else {
+      setRoundOutcome(null);
+      setGame(prepareRound(game));
+    }
+  };
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
   const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
   const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
@@ -881,7 +1018,7 @@ function App(){
       </div>
 
       {/* ═══════════ PLAYER PROFILE ═══════════ */}
-      {isConnected && <div style={{marginBottom:16,padding:"16px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+      {isConnected && !demoMode && <div style={{marginBottom:16,padding:"16px 24px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
         <div style={{position:"relative",width:80,height:80,flexShrink:0}}>
           {avatar ? (
             <img src={avatar} alt="avatar" style={{width:80,height:80,borderRadius:"50%",objectFit:"cover",border:"3px solid rgba(255,255,255,0.2)"}}/>
@@ -901,7 +1038,7 @@ function App(){
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div>
                 <div style={{fontSize:22,fontWeight:700,color:"#f1f5f9"}}>{username||"Anonymous Hero"}</div>
-                <div style={{fontSize:15,color:"#64748b"}}>{walletAccount||"Demo Player"}</div>
+                <div style={{fontSize:15,color:"#64748b"}}>{walletAccount}</div>
               </div>
               <button className="btn btn-sm" onClick={()=>setEditingProfile(true)} style={{fontSize:14,padding:"4px 12px",opacity:0.7}}>Edit</button>
             </div>
@@ -1006,7 +1143,7 @@ function App(){
 
       {/* ═══════════ BATTLE TAB ═══════════ */}
       {tab==="battle"&&<div className="space">
-        <div className="ui-card" style={{textAlign:"center"}}>
+        <div className={`ui-card${warDeclared?" fx-screen-shake":""}`} style={{textAlign:"center"}}>
           {/* Difficulty selector — only when no active game */}
           {(!game||game.winner)&&<div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:16,alignItems:"center"}}>
             <span style={{fontSize:16,fontWeight:700,color:"#94a3b8",marginRight:4}}>Difficulty:</span>
@@ -1018,11 +1155,12 @@ function App(){
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
           </div>
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:12}}>Go to Collection & Deck to build your deck first.</div>}
-          {game&&<div style={{marginBottom:12}}>
+          {game&&<div style={{marginBottom:12,position:"relative"}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:22,color:"#94a3b8",marginBottom:6}}>
               <span>You: {game.pPts} pts ({pLeft} cards)</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>Opp: {game.oPts} pts ({oLeft} cards)</span>
             </div>
-            <div className="score-track"><div className="score-fill" style={{width:pPct+"%"}}/></div>
+            <div className="score-track"><div className={`score-fill${scoreFlash?" fx-score-flash":""}`} style={{width:pPct+"%"}}/></div>
+            {floatingPts.map(fp=><div key={fp.id} className={`float-pts pts-${fp.type}`} style={{left:fp.side==="player"?"15%":"75%",top:"-10px"}}>+{fp.amount}</div>)}
           </div>}
           {game&&!game.winner&&<>
           <div style={{fontSize:18,fontWeight:700,color:"#67e8f9",marginBottom:6,textTransform:"uppercase",letterSpacing:2}}>Your Abilities</div>
@@ -1072,20 +1210,22 @@ function App(){
             </div>
           </div>
           </>}
-          {isWar&&<div className="war-banner" style={{marginBottom:12}}>WAR! Three cards go down each. The third card decides the pile.</div>}
+          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:12}}>WAR! Three cards go down each. The third card decides the pile.</div>}
           {roundResult}
           {game?.winner&&<div className="win-text" style={{marginTop:8}}>
   {game.winner==="player"?"You Win!":game.winner==="opponent"?"Opponent Wins!":"It's a Draw!"}
   <div style={{fontSize:24,fontWeight:400,color:"#94a3b8",marginTop:6}}>Final Score: You {game.pPts} - {game.oPts} Opponent{game.round>=MAX_ROUNDS?" (Round limit reached)":" (All cards captured)"}</div>
 </div>}
+          <Confetti show={showConfetti}/>
         </div>
         <div className="grid-2">
-          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":(game?.pDoubleDown?"Your card (DOUBLE DOWN!)":"Your card")} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff}/>
+          <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":(game?.pDoubleDown?"Your card (DOUBLE DOWN!)":"Your card")} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff} outcome={roundOutcome} doubleDown={!!game?.pDoubleDown} isWinner={game?.winner==="player"} warActive={isWar&&game?.reveal}/>
           {(()=>{
             const isPeeking=game?.pPeeking&&!game?.reveal;
             const peekCard=isPeeking?((game?.tp?.length>0)?game?.op?.[2]:game?.op?.[0]):null;
-            if(peekCard)return <FlipCard card={peekCard} facedown={false} label="Peeking at opponent's next card"/>;
-            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike}/>;
+            if(peekCard)return <FlipCard card={peekCard} facedown={false} label="Peeking at opponent's next card" peeking={true}/>;
+            const oppOutcome=roundOutcome==="win"?"lose":roundOutcome==="lose"?"win":roundOutcome;
+            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?"Opponent's deciding card":"Opponent's card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal}/>;
           })()}
         </div>
         {/* Stats Panel */}
