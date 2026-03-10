@@ -664,6 +664,106 @@ function App(){
     }catch(e){}
   };
   const saveVillain=(id)=>{ setVillainId(id); try{ localStorage.setItem("bh_war_villain",id); }catch(e){} playVillainIntro(VILLAINS[id]); };
+
+  // ═══════════ SFX SOUND SYSTEM ═══════════
+  const sfxCacheRef=useRef({});
+  const playSfx=(name,volume=0.5)=>{
+    try{
+      // Reuse cached Audio objects for rapid repeated play
+      const key="sounds/"+name+".mp3";
+      let a=sfxCacheRef.current[key];
+      if(a){ a.currentTime=0; a.volume=volume; a.play().catch(()=>{}); }
+      else{ a=new Audio(key); a.volume=volume; sfxCacheRef.current[key]=a; a.play().catch(()=>{}); }
+    }catch(e){}
+  };
+  // Preload all SFX on first mount
+  useEffect(()=>{
+    const names=["card-flip","war-declared","victory","loss","battle-victory","battle-loss","ability-trigger","counter-strike","shield-block","peek","double-down","devour","leech","fud","encrypt","overwhelm"];
+    names.forEach(n=>{ try{ const a=new Audio("sounds/"+n+".mp3"); a.preload="auto"; sfxCacheRef.current["sounds/"+n+".mp3"]=a; }catch(e){} });
+  },[]);
+
+  // ═══════════ BACKGROUND MUSIC SYSTEM ═══════════
+  const pregameMusicRef=useRef(null);
+  const gameplayMusicRef=useRef(null);
+  const musicStartedRef=useRef(false);
+  const [musicMuted,setMusicMuted]=useState(()=>{ try{ return localStorage.getItem("bh_war_music_muted")==="true"; }catch(e){ return false; } });
+  const MUSIC_VOLUME=0.25;
+
+  // Initialize audio objects once
+  useEffect(()=>{
+    const pg=new Audio("sounds/pregame-audio.mp3");
+    pg.loop=true; pg.volume=MUSIC_VOLUME; pg.preload="auto";
+    pregameMusicRef.current=pg;
+    const gp=new Audio("sounds/gameplay.mp3");
+    gp.loop=true; gp.volume=MUSIC_VOLUME; gp.preload="auto";
+    gameplayMusicRef.current=gp;
+    return()=>{ pg.pause(); gp.pause(); };
+  },[]);
+
+  // Cross-fade helper: fade out one track, fade in the other
+  const crossFade=(fadeOut,fadeIn,duration=800)=>{
+    if(musicMuted)return;
+    const steps=20; const interval=duration/steps;
+    let step=0;
+    if(fadeIn){ fadeIn.volume=0; fadeIn.play().catch(()=>{}); }
+    const timer=setInterval(()=>{
+      step++;
+      const progress=step/steps;
+      if(fadeOut) fadeOut.volume=Math.max(0,MUSIC_VOLUME*(1-progress));
+      if(fadeIn) fadeIn.volume=Math.min(MUSIC_VOLUME,MUSIC_VOLUME*progress);
+      if(step>=steps){
+        clearInterval(timer);
+        if(fadeOut){ fadeOut.pause(); fadeOut.currentTime=0; }
+      }
+    },interval);
+  };
+
+  // Start pregame music on first user interaction (browser autoplay policy)
+  const startPregameMusic=useCallback(()=>{
+    if(musicStartedRef.current||musicMuted)return;
+    musicStartedRef.current=true;
+    const pg=pregameMusicRef.current;
+    if(pg){ pg.volume=MUSIC_VOLUME; pg.play().catch(()=>{}); }
+  },[musicMuted]);
+
+  useEffect(()=>{
+    const handler=()=>startPregameMusic();
+    document.addEventListener("click",handler,{once:true});
+    return()=>document.removeEventListener("click",handler);
+  },[startPregameMusic]);
+
+  // Switch to gameplay music when match starts
+  const startGameplayMusic=()=>{
+    musicStartedRef.current=true;
+    crossFade(pregameMusicRef.current,gameplayMusicRef.current);
+  };
+
+  // Switch back to pregame music when match ends
+  const stopGameplayMusic=()=>{
+    crossFade(gameplayMusicRef.current,pregameMusicRef.current);
+  };
+
+  // Watch for game over → switch back to pregame
+  useEffect(()=>{
+    if(game?.winner){ stopGameplayMusic(); }
+  },[game?.winner]);
+
+  // Mute/unmute toggle
+  const toggleMusic=()=>{
+    setMusicMuted(prev=>{
+      const next=!prev;
+      try{ localStorage.setItem("bh_war_music_muted",String(next)); }catch(e){}
+      const pg=pregameMusicRef.current, gp=gameplayMusicRef.current;
+      if(next){ if(pg){pg.pause();} if(gp){gp.pause();} }
+      else{
+        musicStartedRef.current=true;
+        // Resume whichever track should be playing
+        if(game&&!game.winner){ if(gp){gp.volume=MUSIC_VOLUME;gp.play().catch(()=>{});} }
+        else{ if(pg){pg.volume=MUSIC_VOLUME;pg.play().catch(()=>{});} }
+      }
+      return next;
+    });
+  };
   const [game,setGame]=useState(null);
   const [badgeNotif,setBadgeNotif]=useState(null);
 
@@ -734,6 +834,7 @@ function App(){
       setOwnedCards([]);
       setDeck([]);
       setGame(null);
+      stopGameplayMusic();
     }
   };
 
@@ -864,6 +965,7 @@ function App(){
     setWalletAccount(null);
     setWalletType(null);
     setGame(null);
+    stopGameplayMusic();
     // Re-initialize WaxJS for fresh login next time
     if(typeof waxjs !== "undefined" && waxjs.WaxJS){
       waxRef.current = new waxjs.WaxJS({ rpcEndpoint: WAX_CONFIG.rpcEndpoint, tryAutoLogin: false });
@@ -1015,7 +1117,17 @@ function App(){
   const totalPts=(game?.pPts??0)+(game?.oPts??0);
   const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
-  const startBattle=()=>{ if(!deck.length)return; setShowConfetti(false); setRoundOutcome(null); const v=VILLAINS[villainId]||VILLAINS.the_swarm; setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId)); };
+  const startBattle=()=>{
+    if(!deck.length)return;
+    setShowConfetti(false); setRoundOutcome(null);
+    const v=VILLAINS[villainId]||VILLAINS.the_swarm;
+    setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId));
+    // Switch to gameplay music
+    startGameplayMusic();
+    // Play villain passive ability sound on battle start
+    if(v.id==="whisper")setTimeout(()=>playSfx("fud",0.4),500);
+    else if(v.id==="encryptkeeper")setTimeout(()=>playSfx("encrypt",0.4),500);
+  };
   const play=()=>{
     if(!game)return;
     if(game.reveal){
@@ -1023,21 +1135,41 @@ function App(){
       const next=resolveRound(game);
       const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0);
       const os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
-      if(ps>os){ setRoundOutcome("win"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"win","player"); }
-      else if(os>ps){ setRoundOutcome("lose"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"lose","opponent"); }
-      else { setRoundOutcome("tie"); setWarDeclared(true); }
+      if(ps>os){
+        setRoundOutcome("win"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"win","player");
+        playSfx("battle-victory",0.5);
+      }
+      else if(os>ps){
+        setRoundOutcome("lose"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"lose","opponent");
+        playSfx("battle-loss",0.5);
+      }
+      else {
+        setRoundOutcome("tie"); setWarDeclared(true);
+        playSfx("war-declared",0.6);
+        // Villain-specific WAR sound: Overwhelm for The Swarm
+        const gv=game.villain?VILLAINS[game.villain]:null;
+        if(gv?.warCards>3)setTimeout(()=>playSfx("overwhelm",0.45),300);
+      }
+      // Counter-Strike, Shield, Devour, Leech sounds on the resolve
+      if(next.oCounterStrike)setTimeout(()=>playSfx("counter-strike",0.5),200);
+      if(next.oShieldUsed)setTimeout(()=>playSfx("shield-block",0.5),200);
+      if(next.devoured)setTimeout(()=>playSfx("devour",0.5),400);
+      if(next.leeched)setTimeout(()=>playSfx("leech",0.5),400);
       if(next.lastPtsWon>0)setScoreFlash(true);
       setTimeout(()=>{ setRoundOutcome(null); setWarDeclared(false); setScoreFlash(false); },1500);
-      if(next.winner==="player")setTimeout(()=>setShowConfetti(true),400);
+      // Match end sounds
+      if(next.winner==="player"){ setTimeout(()=>setShowConfetti(true),400); setTimeout(()=>playSfx("victory",0.6),300); }
+      else if(next.winner==="opponent"){ setTimeout(()=>playSfx("loss",0.6),300); }
       setGame(next);
     } else {
       setRoundOutcome(null);
+      playSfx("card-flip",0.4);
       setGame(prepareRound(game));
     }
   };
-  const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
-  const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
-  const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
+  const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; playSfx("ability-trigger",0.5); return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
+  const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; playSfx("peek",0.5); return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
+  const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; playSfx("double-down",0.5); return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
   const toggleCard=(card)=>{
     setDeck(cur=>{
       if(cur.some(c=>c.id===card.id))return cur.filter(c=>c.id!==card.id);
@@ -1066,7 +1198,9 @@ function App(){
     <div className="app">
       {/* ═══════════ HEADER WITH WALLET ═══════════ */}
       <div className="header-row">
-        <h1 style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><img src="blockchain-heroes-logo.png" alt="Blockchain Heroes" style={{height:60,maxWidth:320}}/> WAR</h1>
+        <h1 style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><img src="blockchain-heroes-logo.png" alt="Blockchain Heroes" style={{height:60,maxWidth:320}}/> WAR
+          <button onClick={toggleMusic} title={musicMuted?"Unmute music":"Mute music"} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:10,padding:"6px 10px",cursor:"pointer",fontSize:20,lineHeight:1,color:"#94a3b8",WebkitTextFillColor:"#94a3b8",marginLeft:4}}>{musicMuted?"🔇":"🔊"}</button>
+        </h1>
         <div className="wallet-area">
           <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
             {walletAccount ? (
