@@ -419,6 +419,19 @@ function buildImageUrl(img) {
   return WAX_CONFIG.ipfsGateway + img;
 }
 
+// Preload card images into browser cache — legendaries/epics first (largest files)
+const _preloadedUrls=new Set();
+function preloadCardImages(cards){
+  const sorted=[...cards].sort((a,b)=>(RARITY_ORDER[b.rarity]||0)-(RARITY_ORDER[a.rarity]||0));
+  sorted.forEach(c=>{
+    if(!c.img)return;
+    const url=buildImageUrl(c.img);
+    if(_preloadedUrls.has(url))return;
+    _preloadedUrls.add(url);
+    const i=new Image(); i.src=url;
+  });
+}
+
 async function fetchOwnedCards(account) {
   const allCards = [];
   let page = 1;
@@ -707,7 +720,7 @@ function App(){
   const pregameMusicRef=useRef(null);
   const gameplayMusicRef=useRef(null);
   const musicStartedRef=useRef(false);
-  const [musicMuted,setMusicMuted]=useState(()=>{ try{ return localStorage.getItem("bh_war_music_muted")==="true"; }catch(e){ return false; } });
+  const [musicMuted,setMusicMuted]=useState(false); // always start unmuted
   const MUSIC_VOLUME=0.25;
 
   // Initialize audio objects once and attempt autoplay
@@ -718,10 +731,8 @@ function App(){
     const gp=new Audio("sounds/gameplay.mp3");
     gp.loop=true; gp.volume=MUSIC_VOLUME; gp.preload="auto";
     gameplayMusicRef.current=gp;
-    // Try to autoplay immediately; if browser blocks it, first click will start it
-    if(!musicMuted){
-      pg.play().then(()=>{ musicStartedRef.current=true; }).catch(()=>{});
-    }
+    // Try to autoplay immediately; if browser blocks it, interaction handler will start it
+    pg.play().then(()=>{ musicStartedRef.current=true; }).catch(()=>{});
     return()=>{ pg.pause(); gp.pause(); };
   },[]);
 
@@ -743,19 +754,31 @@ function App(){
     },interval);
   };
 
-  // Fallback: start pregame music on first click if autoplay was blocked
-  const startPregameMusic=useCallback(()=>{
-    if(musicStartedRef.current||musicMuted)return;
-    musicStartedRef.current=true;
-    const pg=pregameMusicRef.current;
-    if(pg){ pg.volume=MUSIC_VOLUME; pg.play().catch(()=>{}); }
-  },[musicMuted]);
-
+  // Fallback: start pregame music on any user interaction if autoplay was blocked
   useEffect(()=>{
-    const handler=()=>startPregameMusic();
-    document.addEventListener("click",handler,{once:true});
-    return()=>document.removeEventListener("click",handler);
-  },[startPregameMusic]);
+    const tryStart=()=>{
+      if(musicStartedRef.current||musicMuted)return;
+      const pg=pregameMusicRef.current;
+      if(pg){
+        pg.volume=MUSIC_VOLUME;
+        pg.play().then(()=>{
+          musicStartedRef.current=true;
+          // Remove all listeners once music is playing
+          document.removeEventListener("click",tryStart);
+          document.removeEventListener("keydown",tryStart);
+          document.removeEventListener("touchstart",tryStart);
+        }).catch(()=>{});
+      }
+    };
+    document.addEventListener("click",tryStart);
+    document.addEventListener("keydown",tryStart);
+    document.addEventListener("touchstart",tryStart);
+    return()=>{
+      document.removeEventListener("click",tryStart);
+      document.removeEventListener("keydown",tryStart);
+      document.removeEventListener("touchstart",tryStart);
+    };
+  },[musicMuted]);
 
   // Switch to gameplay music when match starts
   const startGameplayMusic=()=>{
@@ -773,11 +796,10 @@ function App(){
     if(game?.winner){ stopGameplayMusic(); }
   },[game?.winner]);
 
-  // Mute/unmute toggle
+  // Mute/unmute toggle (not persisted — always starts unmuted on page load)
   const toggleMusic=()=>{
     setMusicMuted(prev=>{
       const next=!prev;
-      try{ localStorage.setItem("bh_war_music_muted",String(next)); }catch(e){}
       const pg=pregameMusicRef.current, gp=gameplayMusicRef.current;
       if(next){ if(pg){pg.pause();} if(gp){gp.pause();} }
       else{
@@ -852,7 +874,9 @@ function App(){
   const toggleDemoMode = (checked)=>{
     if(checked){
       setDemoMode(true);
-      setOwnedCards(generateDemoCards());
+      const demoCards=generateDemoCards();
+      setOwnedCards(demoCards);
+      preloadCardImages(demoCards);
       setDeck([]);
       setError("");
     } else {
@@ -936,6 +960,7 @@ function App(){
         if(cards.length > 0){
           setOwnedCards(cards);
           setDeck([]); // user builds their own deck from live inventory
+          preloadCardImages(cards); // start caching all card images immediately
         } else {
           setError("No Series 1 cards found in this wallet.");
           setOwnedCards([]);
@@ -1109,6 +1134,9 @@ function App(){
     saveProfile({username:val,avatar});
   };
 
+  // Preload deck card images whenever deck changes (auto-build or manual adds)
+  useEffect(()=>{ if(deck.length>0) preloadCardImages(deck); },[deck]);
+
   // Track game completion for achievements + stats
   useEffect(()=>{
     if(!game?.winner) return;
@@ -1149,10 +1177,8 @@ function App(){
     const v=VILLAINS[villainId]||VILLAINS.the_swarm;
     const oDeck=buildDeck(ownedCards);
     const g=createGame(deck,oDeck,v.cfg,villainId);
-    // Preload all card images from both decks so they display instantly on flip
-    [...deck,...oDeck].forEach(c=>{
-      if(c.img){ const i=new Image(); i.src=buildImageUrl(c.img); }
-    });
+    // Ensure all card images from both decks are cached (safety net)
+    preloadCardImages([...deck,...oDeck]);
     setGame(g);
     // Switch to gameplay music
     startGameplayMusic();
