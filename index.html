@@ -1306,6 +1306,12 @@ function App(){
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; playSfx("ability-trigger",0.5); return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
   const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; playSfx("peek",0.5); return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
   const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; playSfx("double-down",0.5); return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
+  const surrender=()=>{
+    if(!game||game.winner)return;
+    setGame(g=>({...g,winner:"opponent"}));
+    setTimeout(()=>playSfx("loss",0.6),300);
+    setTimeout(()=>{ setEndgameSplash("opponent"); setTimeout(()=>setEndgameSplash(null),5200); },200);
+  };
   const toggleCard=(card)=>{
     setDeck(cur=>{
       if(cur.some(c=>c.id===card.id))return cur.filter(c=>c.id!==card.id);
@@ -1525,6 +1531,7 @@ function App(){
           <div className="flex-wrap" style={{justifyContent:"center",gap:10,marginBottom:10}}>
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
+            {game&&!game.winner&&<button className="btn" onClick={surrender} style={{background:"rgba(239,68,68,0.15)",color:"#fca5a5",border:"1px solid rgba(239,68,68,0.3)",fontSize:16,padding:"8px 16px",borderRadius:12}}>🏳️ Surrender</button>}
             {game&&!game.winner&&(()=>{const gv=game.villain?VILLAINS[game.villain]:null;return gv?<span className="badge" style={{background:gv.color+"22",color:gv.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+gv.color+"44"}}>vs {gv.name} {"★".repeat(gv.difficulty)+"☆".repeat(5-gv.difficulty)}</span>:null;})()}
           </div>
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:8}}>Go to Collection & Deck to build your deck first.</div>}
