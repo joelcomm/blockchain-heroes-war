@@ -664,6 +664,23 @@ function App(){
     }catch(e){}
   };
   const saveVillain=(id)=>{ setVillainId(id); try{ localStorage.setItem("bh_war_villain",id); }catch(e){} playVillainIntro(VILLAINS[id]); };
+
+  // ═══════════ SFX SOUND SYSTEM ═══════════
+  const sfxCacheRef=useRef({});
+  const playSfx=(name,volume=0.5)=>{
+    try{
+      // Reuse cached Audio objects for rapid repeated play
+      const key="sounds/"+name+".mp3";
+      let a=sfxCacheRef.current[key];
+      if(a){ a.currentTime=0; a.volume=volume; a.play().catch(()=>{}); }
+      else{ a=new Audio(key); a.volume=volume; sfxCacheRef.current[key]=a; a.play().catch(()=>{}); }
+    }catch(e){}
+  };
+  // Preload all SFX on first mount
+  useEffect(()=>{
+    const names=["card-flip","war-declared","victory","loss","battle-victory","battle-loss","ability-trigger","counter-strike","shield-block","peek","double-down","devour","leech","fud","encrypt","overwhelm"];
+    names.forEach(n=>{ try{ const a=new Audio("sounds/"+n+".mp3"); a.preload="auto"; sfxCacheRef.current["sounds/"+n+".mp3"]=a; }catch(e){} });
+  },[]);
   const [game,setGame]=useState(null);
   const [badgeNotif,setBadgeNotif]=useState(null);
 
@@ -1015,7 +1032,15 @@ function App(){
   const totalPts=(game?.pPts??0)+(game?.oPts??0);
   const pPct=totalPts>0?Math.round((game?.pPts??0)/totalPts*100):50;
 
-  const startBattle=()=>{ if(!deck.length)return; setShowConfetti(false); setRoundOutcome(null); const v=VILLAINS[villainId]||VILLAINS.the_swarm; setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId)); };
+  const startBattle=()=>{
+    if(!deck.length)return;
+    setShowConfetti(false); setRoundOutcome(null);
+    const v=VILLAINS[villainId]||VILLAINS.the_swarm;
+    setGame(createGame(deck,buildDeck(ownedCards),v.cfg,villainId));
+    // Play villain passive ability sound on battle start
+    if(v.id==="whisper")setTimeout(()=>playSfx("fud",0.4),500);
+    else if(v.id==="encryptkeeper")setTimeout(()=>playSfx("encrypt",0.4),500);
+  };
   const play=()=>{
     if(!game)return;
     if(game.reveal){
@@ -1023,21 +1048,41 @@ function App(){
       const next=resolveRound(game);
       const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0);
       const os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
-      if(ps>os){ setRoundOutcome("win"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"win","player"); }
-      else if(os>ps){ setRoundOutcome("lose"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"lose","opponent"); }
-      else { setRoundOutcome("tie"); setWarDeclared(true); }
+      if(ps>os){
+        setRoundOutcome("win"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"win","player");
+        playSfx("battle-victory",0.5);
+      }
+      else if(os>ps){
+        setRoundOutcome("lose"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"lose","opponent");
+        playSfx("battle-loss",0.5);
+      }
+      else {
+        setRoundOutcome("tie"); setWarDeclared(true);
+        playSfx("war-declared",0.6);
+        // Villain-specific WAR sound: Overwhelm for The Swarm
+        const gv=game.villain?VILLAINS[game.villain]:null;
+        if(gv?.warCards>3)setTimeout(()=>playSfx("overwhelm",0.45),300);
+      }
+      // Counter-Strike, Shield, Devour, Leech sounds on the resolve
+      if(next.oCounterStrike)setTimeout(()=>playSfx("counter-strike",0.5),200);
+      if(next.oShieldUsed)setTimeout(()=>playSfx("shield-block",0.5),200);
+      if(next.devoured)setTimeout(()=>playSfx("devour",0.5),400);
+      if(next.leeched)setTimeout(()=>playSfx("leech",0.5),400);
       if(next.lastPtsWon>0)setScoreFlash(true);
       setTimeout(()=>{ setRoundOutcome(null); setWarDeclared(false); setScoreFlash(false); },1500);
-      if(next.winner==="player")setTimeout(()=>setShowConfetti(true),400);
+      // Match end sounds
+      if(next.winner==="player"){ setTimeout(()=>setShowConfetti(true),400); setTimeout(()=>playSfx("victory",0.6),300); }
+      else if(next.winner==="opponent"){ setTimeout(()=>playSfx("loss",0.6),300); }
       setGame(next);
     } else {
       setRoundOutcome(null);
+      playSfx("card-flip",0.4);
       setGame(prepareRound(game));
     }
   };
-  const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
-  const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
-  const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
+  const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; playSfx("ability-trigger",0.5); return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
+  const peek=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pPeeking||g.pPeeks<=0||(g.tp.length>0))return g; playSfx("peek",0.5); return{...g,pPeeking:true,pPeeks:g.pPeeks-1}; }); };
+  const doubleDown=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pDoubleDown||g.pDoubles<=0)return g; playSfx("double-down",0.5); return{...g,pDoubleDown:true,pDoubles:g.pDoubles-1}; }); };
   const toggleCard=(card)=>{
     setDeck(cur=>{
       if(cur.some(c=>c.id===card.id))return cur.filter(c=>c.id!==card.id);
