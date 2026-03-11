@@ -359,7 +359,7 @@ const VILLAINS = {
   the_swarm:     { id:"the_swarm",     name:"The Swarm",       subtitle:"The Consuming Legion",    cardNum:38, classicImg:"classics/series2/38.jpg",                                   introSound:"sounds/swarm-intro.mp3",       color:"#06b6d4", ability:"Overwhelm", abilityDesc:"WAR uses 4 facedown cards instead of 3",                warCards:4,          difficulty:1, diffLabel:"Easy",       cfg:{ shields:0, shieldEffect:"halve", buffAccuracy:0.60, counterStrike:0.05, npcCharges:3,  doubles:5, charges:6, peeks:5 } },
   whisper:       { id:"whisper",       name:"Whisper",         subtitle:"The Inner Demon",         cardNum:31, classicImg:"classics/series2/31.jpg",                                   introSound:"sounds/whisper-intro.mp3",         color:"#94a3b8", ability:"FUD",       abilityDesc:"Your hero powers activate 12% less often",              fudPenalty:0.12,     difficulty:2, diffLabel:"Normal",     cfg:{ shields:1, shieldEffect:"halve", buffAccuracy:0.70, counterStrike:0.10, npcCharges:4,  doubles:4, charges:5, peeks:4 } },
   lady_iris:     { id:"lady_iris",     name:"Lady Iris",       subtitle:"The Lavicious Leech",     cardNum:33, classicImg:"classics/series2/33.jpg",                                   introSound:"sounds/lady-iris-intro.mp3",       color:"#e879f9", ability:"Leech",     abilityDesc:"35% chance to drain 1 ability charge when winning",     leechChance:0.35,    difficulty:3, diffLabel:"Hard",       cfg:{ shields:3, shieldEffect:"halve", buffAccuracy:0.90, counterStrike:0.30, npcCharges:5,  doubles:3, charges:4, peeks:3 } },
-  encryptkeeper: { id:"encryptkeeper", name:"Encryptkeeper",   subtitle:"The Necromachinist",      cardNum:37, classicImg:"QmZwmizReu8wbMjT1eQy5emXP1NnPwQcgzHX8EMQdXx9rA",            introSound:"sounds/encryptkeeper-intro.mp3",   color:"#22c55e", ability:"Encrypt",   abilityDesc:"Opponent card strength hidden until reveal",            encrypted:true,      difficulty:4, diffLabel:"Insane",     cfg:{ shields:3, shieldEffect:"block", buffAccuracy:0.95, counterStrike:0.40, npcCharges:6,  doubles:2, charges:3, peeks:2 } },
+  encryptkeeper: { id:"encryptkeeper", name:"Encryptkeeper",   subtitle:"The Necromachinist",      cardNum:37, classicImg:"classics/series2/37.jpg",            introSound:"sounds/encryptkeeper-intro.mp3",   color:"#22c55e", ability:"Encrypt",   abilityDesc:"Opponent card strength hidden until reveal",            encrypted:true,      difficulty:4, diffLabel:"Insane",     cfg:{ shields:3, shieldEffect:"block", buffAccuracy:0.95, counterStrike:0.40, npcCharges:6,  doubles:2, charges:3, peeks:2 } },
   rez_phede:     { id:"rez_phede",     name:"Rez'Phede",      subtitle:"The Eternal Devourer",    cardNum:21, classicImg:"classics/series2/21.jpg",                                   introSound:"sounds/rezphede-intro.mp3",        color:"#ef4444", ability:"Devour",    abilityDesc:"40% chance to steal 1 pt when winning",                 devourChance:0.40,   difficulty:5, diffLabel:"Impossible", cfg:{ shields:5, shieldEffect:"block", buffAccuracy:1.00, counterStrike:0.50, npcCharges:8,  doubles:1, charges:3, peeks:1 } },
 };
 function villainImgUrl(v,side="front"){
@@ -683,14 +683,14 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
         <div className={flipClasses}>
           <div className="flip-face"><img className="card-back" src={CARD_BACK} alt="back"/></div>
           <div className={`flip-face flip-back${peeking?" fx-peek":""}`} style={{padding:8}}>
-            {card?(<div style={{display:"flex",gap:12,width:"100%",height:"100%",alignItems:"center",padding:"0 4px"}}>
+            {card?(<div style={{display:"flex",gap:12,width:"100%",height:"100%",alignItems:"stretch",padding:"0 4px"}}>
               {/* Left: card image — fixed 45% width, full height, contained */}
               <div style={{flex:"0 0 45%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)",position:"relative"}}>
                 {!imgLoaded&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={CARD_BACK} alt="loading" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:0.5}}/></div>}
                 <img src={imgUrl} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:imgLoaded?1:0,transition:"opacity 0.2s"}} onLoad={()=>setImgLoaded(true)} onError={(e)=>{e.target.src=CARD_BACK;setImgLoaded(true);}} />
               </div>
               {/* Right: name, rarity, strength, power */}
-              <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:6,minWidth:0,overflow:"hidden",height:"100%",paddingTop:8,paddingBottom:8}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"flex-start",gap:6,minWidth:0,overflow:"hidden",height:"100%",paddingTop:24,paddingBottom:8}}>
                 <div className={`name-${r}`} style={{fontSize:24,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                   <span className={`badge badge-${r}`}>{titleCase(r)}</span>
@@ -1570,9 +1570,9 @@ function App(){
             const wci=(gv?.warCards||3)-1;
             const peekCard=isPeeking?((game?.tp?.length>0)?game?.op?.[wci]:game?.op?.[0]):null;
             const vName=gv?.name||"Opponent";
-            if(peekCard)return <FlipCard card={peekCard} facedown={false} label={"Peeking at "+vName+"'s next card"} peeking={true}/>;
+            if(peekCard)return <FlipCard card={peekCard} facedown={false} label={"Peeking at "+vName+"'s next card"} peeking={true} encrypted={!!gv?.encrypted}/>;
             const oppOutcome=roundOutcome==="win"?"lose":roundOutcome==="lose"?"win":roundOutcome;
-            const isEncrypted=!!gv?.encrypted&&!!game?.reveal;
+            const isEncrypted=false;
             return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?vName+"'s deciding card":vName+"'s card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal} encrypted={isEncrypted}/>;
           })()}
         </div>
