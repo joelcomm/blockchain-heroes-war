@@ -651,7 +651,7 @@ function resolveRound(g){
   else if(!fp.length)w="opponent";
   else if(!fo.length)w="player";
   else if(rd>=MAX_ROUNDS&&nt.length===0)w=pPts>oPts?"player":oPts>pPts?"opponent":"tie";
-  return{cfg:g.cfg,villain:g.villain,pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks,pPeeking:false,pDoubleDown:false,pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed,devoured,leeched};
+  return{cfg:g.cfg,villain:g.villain,pp:fp,op:fo,tp:nt,cur:g.cur,reveal:false,round:rd,winner:w,wfp:[],wfo:[],pPts,oPts,lastPtsWon:lp,lastPs:ps,lastOs:os,pCharges,pManualBuff:false,oCharges:g.oCharges,oManualBuff:false,oCounterStrike:g.oCounterStrike,pPeeks,pPeeking:false,pDoubleDown:false,pDoubles,lastDoubleDown:g.pDoubleDown,oShields:g.oShields-(shieldUsed?1:0),oShieldUsed:shieldUsed,devoured,leeched};
 }
 
 /* ═══════════ COMPONENTS ═══════════ */
@@ -1329,7 +1329,7 @@ function App(){
   };
 
   const roundResult=game&&game.cur&&!game.reveal&&!game.winner?(()=>{
-    const ps=calcStr(game.cur.p,game.pBuff,game.pManualBuff),os=calcStr(game.cur.o,game.oBuff,game.oManualBuff);
+    const ps=game.lastPs??calcStr(game.cur.p,game.pBuff,game.pManualBuff),os=game.lastOs??calcStr(game.cur.o,game.oBuff,game.oManualBuff);
     const lp=game.lastPtsWon||0;
     const extras=[];
     if(game.oCounterStrike)extras.push("⚡ Counter-Strike!");
