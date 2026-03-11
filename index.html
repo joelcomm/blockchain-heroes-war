@@ -18,9 +18,7 @@
   if(typeof waxjs !== "undefined"){
     window.__WaxJSClass = waxjs.WaxJS || waxjs.default?.WaxJS || waxjs.default || null;
     window.__waxjsRaw = waxjs;
-    console.log("[WaxJS Bridge] Loaded. WaxJS class:", window.__WaxJSClass, "Raw keys:", Object.keys(waxjs));
   } else {
-    console.error("[WaxJS Bridge] waxjs global is undefined after script load");
   }
 </script>
 <style>
@@ -48,6 +46,12 @@
   .btn-primary { background: #6366f1; color: white; }
   .btn-primary:hover { background: #818cf8; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ability-btn { color:white; font-size:16px; padding:8px 16px; border-radius:12px; display:flex; align-items:center; gap:6px; }
+  .ability-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .stat-box { padding:12px; border-radius:12px; }
+  .stat-box .stat-val { font-size:28px; font-weight:800; }
+  .stat-box .stat-label { font-size:16px; color:#94a3b8; }
+  .mute-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:6px 10px; cursor:pointer; font-size:20px; line-height:1; color:#94a3b8; -webkit-text-fill-color:#94a3b8; margin-left:4px; }
   .btn-wallet { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
   .btn-wallet:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
   .btn-wallet.connected { background: linear-gradient(135deg, #10b981, #059669); }
@@ -100,13 +104,13 @@
     position: absolute; inset: 0;
     backface-visibility: hidden; border-radius: 16px; overflow: hidden;
   }
-  .flip-back { transform: rotateY(180deg); padding: 20px; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.5); }
+  .flip-back { transform: rotateY(180deg); padding: 20px; display: flex; flex-direction: column; align-items: center; background: #000; }
   .flip-inner img.card-back { width: 100%; height: 100%; object-fit: contain; background: #000; border-radius: 16px; }
-  .glow-legendary { box-shadow: 0 0 40px rgba(251,191,36,0.35); border-color: rgba(251,191,36,0.5); background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(0,0,0,0.3)); }
-  .glow-epic { box-shadow: 0 0 35px rgba(168,85,247,0.32); border-color: rgba(168,85,247,0.5); background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(0,0,0,0.3)); }
-  .glow-rare { box-shadow: 0 0 28px rgba(34,211,238,0.26); border-color: rgba(34,211,238,0.5); background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(0,0,0,0.3)); }
-  .glow-uncommon { box-shadow: 0 0 18px rgba(52,211,153,0.22); border-color: rgba(52,211,153,0.4); background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(0,0,0,0.3)); }
-  .glow-common { box-shadow: 0 0 12px rgba(148,163,184,0.15); border-color: rgba(148,163,184,0.3); background: linear-gradient(135deg, rgba(148,163,184,0.1), rgba(0,0,0,0.3)); }
+  .glow-legendary { box-shadow: 0 0 40px rgba(251,191,36,0.35); border-color: rgba(251,191,36,0.5); background: #000; }
+  .glow-epic { box-shadow: 0 0 35px rgba(168,85,247,0.32); border-color: rgba(168,85,247,0.5); background: #000; }
+  .glow-rare { box-shadow: 0 0 28px rgba(34,211,238,0.26); border-color: rgba(34,211,238,0.5); background: #000; }
+  .glow-uncommon { box-shadow: 0 0 18px rgba(52,211,153,0.22); border-color: rgba(52,211,153,0.4); background: #000; }
+  .glow-common { box-shadow: 0 0 12px rgba(148,163,184,0.15); border-color: rgba(148,163,184,0.3); background: #000; }
   .str-circle {
     width: 100px; height: 100px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
     display: flex; align-items: center; justify-content: center;
@@ -374,6 +378,9 @@ const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
 const DECK_SIZE = 50;
 const MAX_ROUNDS = 50;
+const LOADING_TIMEOUT_MS = 8000;
+const CONFETTI_COUNT = 50;
+const CROSSFADE_MS = 800;
 
 /* ═══════════ HERO POWER NAMES ═══════════ */
 const HERO_POWER_NAMES = {
@@ -413,18 +420,17 @@ const ALL_HEROES = [
   "The Creatrix","The Crusader","The Emissary","The Oracle","The Prophet",
   "The Senator","The Wizard","Trilogy","Wyld Wrangler","X-Change",
 ];
-/* Mock deck removed — wallet login required to play */
-
 /* ═══════════ HELPERS ═══════════ */
 function normalizeHeroName(n){ return (n||"").trim().toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," "); }
 function getHeroKey(c){ return normalizeHeroName(c.name); }
 function getCardStrength(c){ return RARITY_ORDER[c?.rarity]||0; }
+function calcStr(card,buff,manualBuff){ return getCardStrength(card)+(buff?1:0)+(manualBuff?1:0); }
 function titleCase(v){ return v.charAt(0).toUpperCase()+v.slice(1); }
 function shuffleArray(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
 function countByRarity(d){ const c={legendary:0,epic:0,rare:0,uncommon:0,common:0}; d.forEach(x=>c[x.rarity]++); return c; }
 function heroInDeck(card,deck){ return deck.some(c=>c.id!==card.id && getHeroKey(c)===getHeroKey(card)); }
 function canAdd(card,deck){ const c=countByRarity(deck); if(deck.length>=DECK_SIZE)return false; if(heroInDeck(card,deck))return false; return c[card.rarity]<RARITY_CAPS[card.rarity]; }
-function groupCardsByHero(cards){ const m=new Map(); cards.forEach(c=>{ const k=getHeroKey(c); if(!m.has(k))m.set(k,[]); m.get(k).push(c); }); const order=["legendary","epic","rare","uncommon","common"]; m.forEach(arr=>arr.sort((a,b)=>RARITY_ORDER[b.rarity]-RARITY_ORDER[a.rarity])); return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0])); }
+function groupCardsByHero(cards){ const m=new Map(); cards.forEach(c=>{ const k=getHeroKey(c); if(!m.has(k))m.set(k,[]); m.get(k).push(c); }); m.forEach(arr=>arr.sort((a,b)=>RARITY_ORDER[b.rarity]-RARITY_ORDER[a.rarity])); return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0])); }
 
 function normalizeRarity(raw) {
   const v = String(raw || "").trim().toLowerCase();
@@ -616,7 +622,7 @@ function resolveRound(g){
   const coCards=inWar?[...g.wfo,g.cur.o]:[g.cur.o];
   const npp=g.pp.slice(consumed), nop=g.op.slice(consumed);
   const pile=[...g.tp,...cpCards,...coCards];
-  const ps=getCardStrength(g.cur.p)+(g.pBuff?1:0)+(g.pManualBuff?1:0), os=getCardStrength(g.cur.o)+(g.oBuff?1:0)+(g.oManualBuff?1:0);
+  const ps=calcStr(g.cur.p,g.pBuff,g.pManualBuff), os=calcStr(g.cur.o,g.oBuff,g.oManualBuff);
   let fp=npp, fo=nop, nt=[];
   let pPts=g.pPts, oPts=g.oPts, lp=0;
   const rd=inWar?g.round:g.round+1;
@@ -683,9 +689,9 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
         <div className={flipClasses}>
           <div className="flip-face"><img className="card-back" src={CARD_BACK} alt="back"/></div>
           <div className={`flip-face flip-back${peeking?" fx-peek":""}`} style={{padding:8}}>
-            {card?(<div style={{display:"flex",gap:12,width:"100%",height:"100%",alignItems:"stretch",padding:"0 4px"}}>
+            {card?(<div style={{display:"flex",gap:12,width:"100%",flex:1,alignItems:"stretch",padding:"0 4px"}}>
               {/* Left: card image — fixed 45% width, full height, contained */}
-              <div style={{flex:"0 0 45%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)",position:"relative"}}>
+              <div style={{flex:"0 0 45%",height:"100%",display:"flex",alignItems:"flex-start",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)",position:"relative",paddingTop:8}}>
                 {!imgLoaded&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={CARD_BACK} alt="loading" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:0.5}}/></div>}
                 <img src={imgUrl} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:imgLoaded?1:0,transition:"opacity 0.2s"}} onLoad={()=>setImgLoaded(true)} onError={(e)=>{e.target.src=CARD_BACK;setImgLoaded(true);}} />
               </div>
@@ -715,7 +721,7 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
 /* ═══════════ CONFETTI ═══════════ */
 const CONFETTI_COLORS=['#fbbf24','#f87171','#4ade80','#67e8f9','#a78bfa','#f0abfc','#fde68a','#60a5fa'];
 function Confetti({show}){
-  const pieces=useMemo(()=>Array.from({length:50},(_,i)=>({id:i,color:CONFETTI_COLORS[i%CONFETTI_COLORS.length],x:Math.random()*100,delay:Math.random()*2,duration:2+Math.random()*2,w:6+Math.random()*8,h:4+Math.random()*5,rot:Math.random()*360})),[]);
+  const pieces=useMemo(()=>Array.from({length:CONFETTI_COUNT},(_,i)=>({id:i,color:CONFETTI_COLORS[i%CONFETTI_COLORS.length],x:Math.random()*100,delay:Math.random()*2,duration:2+Math.random()*2,w:6+Math.random()*8,h:4+Math.random()*5,rot:Math.random()*360})),[]);
   if(!show)return null;
   return(<div className="confetti-container">{pieces.map(p=><div key={p.id} className="confetti-piece" style={{"--fall-x":p.x+"%","--fall-delay":p.delay+"s","--fall-duration":p.duration+"s",width:p.w,height:p.h,backgroundColor:p.color,transform:"rotate("+p.rot+"deg)"}}/>)}</div>);
 }
@@ -778,7 +784,7 @@ function App(){
   },[]);
 
   // Cross-fade helper: fade out one track, fade in the other
-  const crossFade=(fadeOut,fadeIn,duration=800)=>{
+  const crossFade=(fadeOut,fadeIn,duration=CROSSFADE_MS)=>{
     if(musicMuted)return;
     const steps=20; const interval=duration/steps;
     let step=0;
@@ -1204,6 +1210,7 @@ function App(){
   },[game?.winner]);
 
   const villain=VILLAINS[villainId]||VILLAINS.the_swarm;
+  const gameVillain=game?.villain?VILLAINS[game.villain]:null;
   const dc=countByRarity(deck);
   const fill=Math.min(100,Math.round(deck.length/DECK_SIZE*100));
   const pLeft=game?.pp.length??deck.length;
@@ -1220,10 +1227,9 @@ function App(){
   const startBattle=()=>{
     if(!deck.length)return;
     setShowConfetti(false); setRoundOutcome(null); setEndgameSplash(null);
-    const v=VILLAINS[villainId]||VILLAINS.the_swarm;
     const oDeck=buildDeck(ownedCards);
-    const g=createGame(deck,oDeck,v.cfg,villainId);
-    pendingGameRef.current={g,v};
+    const g=createGame(deck,oDeck,villain.cfg,villainId);
+    pendingGameRef.current={g,v:villain};
     // Show loading screen while images load
     setMatchLoading(true); setLoadProgress(0);
     const allCards=[...deck,...oDeck];
@@ -1253,7 +1259,7 @@ function App(){
       img.src=url;
     });
     // Safety timeout: start game after 8s even if some images haven't loaded
-    setTimeout(()=>{ if(pendingGameRef.current) launchGame(); },8000);
+    setTimeout(()=>{ if(pendingGameRef.current) launchGame(); },LOADING_TIMEOUT_MS);
     if(total===0) launchGame();
   };
   const play=()=>{
@@ -1261,8 +1267,8 @@ function App(){
     if(game.reveal){
       // Resolve phase — compute outcome and trigger effects
       const next=resolveRound(game);
-      const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0);
-      const os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
+      const ps=calcStr(game.cur.p,game.pBuff,game.pManualBuff);
+      const os=calcStr(game.cur.o,game.oBuff,game.oManualBuff);
       if(ps>os){
         setRoundOutcome("win"); if(next.lastPtsWon>0)addFloatingPts(next.lastPtsWon,"win","player");
         playSfx("battle-victory",0.5);
@@ -1274,9 +1280,7 @@ function App(){
       else {
         setRoundOutcome("tie"); setWarDeclared(true);
         playSfx("war-declared",0.6);
-        // Villain-specific WAR sound: Overwhelm for The Swarm
-        const gv=game.villain?VILLAINS[game.villain]:null;
-        if(gv?.warCards>3)setTimeout(()=>playSfx("overwhelm",0.45),300);
+        if(gameVillain?.warCards>3)setTimeout(()=>playSfx("overwhelm",0.45),300);
       }
       // Counter-Strike, Shield, Devour, Leech sounds on the resolve
       if(next.oCounterStrike)setTimeout(()=>playSfx("counter-strike",0.5),200);
@@ -1325,7 +1329,7 @@ function App(){
   };
 
   const roundResult=game&&game.cur&&!game.reveal&&!game.winner?(()=>{
-    const ps=getCardStrength(game.cur.p)+(game.pBuff?1:0)+(game.pManualBuff?1:0),os=getCardStrength(game.cur.o)+(game.oBuff?1:0)+(game.oManualBuff?1:0);
+    const ps=calcStr(game.cur.p,game.pBuff,game.pManualBuff),os=calcStr(game.cur.o,game.oBuff,game.oManualBuff);
     const lp=game.lastPtsWon||0;
     const extras=[];
     if(game.oCounterStrike)extras.push("⚡ Counter-Strike!");
@@ -1336,7 +1340,7 @@ function App(){
     const extraLine=extras.length>0?<div style={{fontSize:20,fontWeight:700,color:"#fbbf24",marginTop:4}}>{extras.join(" ")}</div>:null;
     if(game.oShieldUsed)return<div className="result-win text-center slide-up">🛡️ You win, but Shield {game.cfg.shieldEffect==="block"?"blocked all":"halved"} your points! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     if(ps>os)return<div className="result-win text-center slide-up">You win this round! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
-    if(os>ps)return<div className="result-lose text-center slide-up">{(game.villain?VILLAINS[game.villain]?.name:"Opponent")||"Opponent"} wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
+    if(os>ps)return<div className="result-lose text-center slide-up">{gameVillain?.name||"Opponent"} wins! ({ps} vs {os}) +{lp} pts{extraLine}</div>;
     return<div className="result-tie text-center slide-up">TIE! WAR is declared! ({ps} vs {os}){extraLine}</div>;
   })():null;
 
@@ -1345,7 +1349,7 @@ function App(){
       {/* ═══════════ HEADER WITH WALLET ═══════════ */}
       <div className="header-row">
         <h1 style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><img src="blockchain-heroes-logo.png" alt="Blockchain Heroes" style={{height:60,maxWidth:320}}/> WAR
-          <button onClick={toggleMusic} title={musicMuted?"Unmute music":"Mute music"} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:10,padding:"6px 10px",cursor:"pointer",fontSize:20,lineHeight:1,color:"#94a3b8",WebkitTextFillColor:"#94a3b8",marginLeft:4}}>{musicMuted?"🔇":"🔊"}</button>
+          <button className="mute-btn" onClick={toggleMusic} title={musicMuted?"Unmute music":"Mute music"}>{musicMuted?"🔇":"🔊"}</button>
         </h1>
         <div className="wallet-area">
           <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
@@ -1497,7 +1501,6 @@ function App(){
       <div className="tabs-list" style={{gridTemplateColumns:"1fr 1fr"}}>
         <button className={`tab-btn ${tab==="collection"?"active":""}`} onClick={()=>setTab("collection")}>&#x2460; Collection & Deck</button>
         <button className={`tab-btn ${tab==="battle"?"active":""}`} onClick={()=>setTab("battle")}>&#x2461; Battle</button>
-        {/* Power Registry tab hidden for now — re-enable when ability system is ready */}
       </div>
 
       {/* ═══════════ BATTLE TAB ═══════════ */}
@@ -1536,27 +1539,27 @@ function App(){
             <button className="btn btn-primary" onClick={startBattle} disabled={deck.length===0}>&#x1F451; Start Match</button>
             <button className="btn btn-primary" onClick={play} disabled={!game||!!game.winner}>{game?.reveal?"Resolve":"Play"}</button>
             {game&&!game.winner&&<button className="btn" onClick={surrender} style={{background:"rgba(239,68,68,0.15)",color:"#fca5a5",border:"1px solid rgba(239,68,68,0.3)",fontSize:16,padding:"8px 16px",borderRadius:12}}>🏳️ Surrender</button>}
-            {game&&!game.winner&&(()=>{const gv=game.villain?VILLAINS[game.villain]:null;return gv?<span className="badge" style={{background:gv.color+"22",color:gv.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+gv.color+"44"}}>vs {gv.name} {"★".repeat(gv.difficulty)+"☆".repeat(5-gv.difficulty)}</span>:null;})()}
+            {game&&!game.winner&&gameVillain&&<span className="badge" style={{background:gameVillain.color+"22",color:gameVillain.color,fontSize:14,padding:"4px 14px",borderRadius:12,border:"1px solid "+gameVillain.color+"44"}}>vs {gameVillain.name} {"★".repeat(gameVillain.difficulty)+"☆".repeat(5-gameVillain.difficulty)}</span>}
           </div>
           {deck.length===0&&!inventoryLoading&&<div className="text-sm text-slate" style={{marginBottom:8}}>Go to Collection & Deck to build your deck first.</div>}
           {/* ── Score bar ── */}
           {game&&<div style={{marginBottom:8,position:"relative"}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:20,color:"#94a3b8",marginBottom:4}}>
-              <span>You: {game.pPts} pts ({pLeft})</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>{(game.villain?VILLAINS[game.villain]?.name:"Opp")||"Opp"}: {game.oPts} pts ({oLeft})</span>
+              <span>You: {game.pPts} pts ({pLeft})</span><span style={{fontWeight:700}}>Round {game.round}/{MAX_ROUNDS}</span><span>{gameVillain?.name||"Opp"}: {game.oPts} pts ({oLeft})</span>
             </div>
             <div className="score-track"><div className={`score-fill${scoreFlash?" fx-score-flash":""}`} style={{width:pPct+"%"}}/></div>
             {floatingPts.map(fp=><div key={fp.id} className={`float-pts pts-${fp.type}`} style={{left:fp.side==="player"?"15%":"75%",top:"-10px"}}>+{fp.amount}</div>)}
           </div>}
           {/* ── WAR banner ── */}
-          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:8,padding:"10px 14px",fontSize:20}}>WAR! {(()=>{const gv=game?.villain?VILLAINS[game.villain]:null;const wc=gv?.warCards||3;return wc+" cards go down. The last decides the pile."+(wc>3?" ("+gv.name+" Overwhelm!)":"");})()}</div>}
+          {isWar&&<div className={`war-banner${warDeclared?" fx-banner-slam":""}`} style={{marginBottom:8,padding:"10px 14px",fontSize:20}}>WAR! {(()=>{const wc=gameVillain?.warCards||3;return wc+" cards go down. The last decides the pile."+(wc>3?" ("+gameVillain.name+" Overwhelm!)":"");})()}</div>}
           {/* ── Round result ── */}
           {roundResult}
           {/* ── Winner ── */}
           {game?.winner&&<div style={{backgroundImage:`linear-gradient(rgba(15,23,42,0.6),rgba(15,23,42,0.75)),url(${VICTORY_BG})`,backgroundSize:"cover",backgroundPosition:"center",borderRadius:20,padding:"24px 16px",marginTop:8}}>
   <div className="win-text" style={{fontSize:32}}>
-  {game.winner==="player"?"You Win!":game.winner==="opponent"?(VILLAINS[game.villain]?.name||"Opponent")+" Wins!":"It's a Draw!"}
+  {game.winner==="player"?"You Win!":game.winner==="opponent"?(gameVillain?.name||"Opponent")+" Wins!":"It's a Draw!"}
   </div>
-  <div style={{fontSize:20,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final: You {game.pPts} - {game.oPts} {VILLAINS[game.villain]?.name||"Opp"}{game.round>=MAX_ROUNDS?" (Round limit)":" (All cards captured)"}</div>
+  <div style={{fontSize:20,fontWeight:400,color:"#94a3b8",marginTop:4}}>Final: You {game.pPts} - {game.oPts} {gameVillain?.name||"Opp"}{game.round>=MAX_ROUNDS?" (Round limit)":" (All cards captured)"}</div>
 </div>}
           <Confetti show={showConfetti}/>
           {endgameSplash&&<div className="endgame-splash" key={endgameSplash} onClick={()=>setEndgameSplash(null)}><img src={endgameSplash==="player"?ENDGAME_VICTORY:ENDGAME_DEFEAT} alt={endgameSplash==="player"?"Victory!":"Defeated!"}/></div>}
@@ -1566,25 +1569,25 @@ function App(){
           <FlipCard card={game?.cur?.p} facedown={!game?.reveal} label={isWar?"Your deciding card":(game?.pDoubleDown?"Your card (DOUBLE DOWN!)":"Your card")} warFD={game?.reveal?game?.wfp||[]:[]} buffed={game?.reveal&&game?.pBuff} manualBuff={game?.reveal&&game?.pManualBuff} outcome={roundOutcome} doubleDown={!!game?.pDoubleDown} isWinner={game?.winner==="player"} warActive={isWar&&game?.reveal}/>
           {(()=>{
             const isPeeking=game?.pPeeking&&!game?.reveal;
-            const gv=game?.villain?VILLAINS[game.villain]:null;
-            const wci=(gv?.warCards||3)-1;
+            const wci=(gameVillain?.warCards||3)-1;
             const peekCard=isPeeking?((game?.tp?.length>0)?game?.op?.[wci]:game?.op?.[0]):null;
-            const vName=gv?.name||"Opponent";
-            if(peekCard)return <FlipCard card={peekCard} facedown={false} label={"Peeking at "+vName+"'s next card"} peeking={true} encrypted={!!gv?.encrypted}/>;
+            const vName=gameVillain?.name||"Opponent";
+            if(peekCard)return <FlipCard card={peekCard} facedown={false} label={"Peeking at "+vName+"'s next card"} peeking={true} encrypted={!!gameVillain?.encrypted}/>;
             const oppOutcome=roundOutcome==="win"?"lose":roundOutcome==="lose"?"win":roundOutcome;
-            const isEncrypted=false;
-            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?vName+"'s deciding card":vName+"'s card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal} encrypted={isEncrypted}/>;
+            return <FlipCard card={game?.cur?.o} facedown={!game?.reveal} label={isWar?vName+"'s deciding card":vName+"'s card"} warFD={game?.reveal?game?.wfo||[]:[]} buffed={game?.reveal&&game?.oBuff} manualBuff={game?.reveal&&game?.oManualBuff} counterStrike={game?.reveal&&game?.oCounterStrike} outcome={oppOutcome} doubleDown={!!game?.pDoubleDown} shieldUsed={!!game?.oShieldUsed} isWinner={game?.winner==="opponent"} warActive={isWar&&game?.reveal}/>;
           })()}
         </div>
         {/* ── Compact ability toolbar ── */}
         {game&&!game.winner&&<div style={{marginTop:10,padding:"12px 16px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16}}>
           <div style={{display:"flex",justifyContent:"center",gap:8,flexWrap:"wrap",marginBottom:8}}>
-            <button className="btn" onClick={triggerPower} disabled={!game||game.winner||game.reveal||game.pManualBuff||game.pCharges<=0} style={{background:game.pManualBuff?"#059669":game.pCharges>0?"#6366f1":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>⚡ {game.pManualBuff?"Boosted!":"Boost"} <span style={{opacity:0.7,fontSize:14}}>({game.pCharges})</span></button>
-            <button className="btn" onClick={peek} disabled={!game||game.winner||game.reveal||game.pPeeking||game.pPeeks<=0||isWar} style={{background:isWar?"#334155":game.pPeeking?"#059669":game.pPeeks>0?"#0891b2":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>👁️ {game.pPeeking?"Peeking!":"Peek"} <span style={{opacity:0.7,fontSize:14}}>({game.pPeeks})</span></button>
-            <button className="btn" onClick={doubleDown} disabled={!game||game.winner||game.reveal||game.pDoubleDown||game.pDoubles<=0} style={{background:game.pDoubleDown?"#059669":game.pDoubles>0?"#d97706":"#334155",color:"white",fontSize:16,padding:"8px 16px",borderRadius:12,display:"flex",alignItems:"center",gap:6}}>🎲 {game.pDoubleDown?"Doubled!":"Double"} <span style={{opacity:0.7,fontSize:14}}>({game.pDoubles})</span></button>
+            {[
+              {icon:"⚡",label:"Boost",activeLabel:"Boosted!",action:triggerPower,count:game.pCharges,active:game.pManualBuff,color:"#6366f1",extraDisable:game.pManualBuff},
+              {icon:"👁️",label:"Peek",activeLabel:"Peeking!",action:peek,count:game.pPeeks,active:game.pPeeking,color:"#0891b2",extraDisable:game.pPeeking||isWar},
+              {icon:"🎲",label:"Double",activeLabel:"Doubled!",action:doubleDown,count:game.pDoubles,active:game.pDoubleDown,color:"#d97706",extraDisable:game.pDoubleDown},
+            ].map(ab=><button key={ab.label} className="btn ability-btn" onClick={ab.action} disabled={!game||game.winner||game.reveal||ab.extraDisable||ab.count<=0} style={{background:ab.active?"#059669":ab.count>0?ab.color:"#334155"}}>{ab.icon} {ab.active?ab.activeLabel:ab.label} <span style={{opacity:0.7,fontSize:14}}>({ab.count})</span></button>)}
           </div>
           <div style={{display:"flex",justifyContent:"center",gap:16,fontSize:15,color:"#94a3b8",flexWrap:"wrap"}}>
-            {(()=>{const gv=game.villain?VILLAINS[game.villain]:null;return gv?<span style={{color:gv.color,fontWeight:700}}>{gv.name}: {gv.ability}</span>:null;})()}
+            {gameVillain&&<span style={{color:gameVillain.color,fontWeight:700}}>{gameVillain.name}: {gameVillain.ability}</span>}
             <span style={{color:"#fda4af"}}>⚡ Buffs ({game.oCharges})</span>
             <span style={{color:"#fda4af"}}>⚡ Counter ({Math.round(game.cfg.counterStrike*100)}%)</span>
             {game.cfg.shields>0&&<span style={{color:"#fda4af"}}>🛡️ Shield ({game.oShields})</span>}
@@ -1594,36 +1597,19 @@ function App(){
         <div className="ui-card" style={{marginTop:16}}>
           <div className="ui-card-title">Player Stats</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,textAlign:"center"}}>
-            <div style={{padding:12,background:"rgba(74,222,128,0.08)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#4ade80"}}>{stats.wins}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Wins</div>
-            </div>
-            <div style={{padding:12,background:"rgba(244,63,94,0.08)",border:"1px solid rgba(244,63,94,0.2)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#f87171"}}>{stats.losses}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Losses</div>
-            </div>
-            <div style={{padding:12,background:"rgba(250,204,21,0.08)",border:"1px solid rgba(250,204,21,0.2)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#facc15"}}>{stats.ties}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Ties</div>
-            </div>
-            <div style={{padding:12,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(129,140,248,0.2)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#a5b4fc"}}>{stats.winStreak}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Win Streak</div>
-            </div>
+            {[
+              {val:stats.wins,label:"Wins",color:"#4ade80",bg:"rgba(74,222,128,0.08)",border:"rgba(74,222,128,0.2)"},
+              {val:stats.losses,label:"Losses",color:"#f87171",bg:"rgba(244,63,94,0.08)",border:"rgba(244,63,94,0.2)"},
+              {val:stats.ties,label:"Ties",color:"#facc15",bg:"rgba(250,204,21,0.08)",border:"rgba(250,204,21,0.2)"},
+              {val:stats.winStreak,label:"Win Streak",color:"#a5b4fc",bg:"rgba(99,102,241,0.08)",border:"rgba(129,140,248,0.2)"},
+            ].map(s=><div key={s.label} className="stat-box" style={{background:s.bg,border:"1px solid "+s.border}}><div className="stat-val" style={{color:s.color}}>{s.val}</div><div className="stat-label">{s.label}</div></div>)}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginTop:12,textAlign:"center"}}>
-            <div style={{padding:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#e2e8f0"}}>{stats.bestStreak}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Best Streak</div>
-            </div>
-            <div style={{padding:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#e2e8f0"}}>{stats.bestScore}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Best Score</div>
-            </div>
-            <div style={{padding:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12}}>
-              <div style={{fontSize:28,fontWeight:800,color:"#e2e8f0"}}>{stats.worstLoss>0?"-"+stats.worstLoss:"—"}</div>
-              <div style={{fontSize:16,color:"#94a3b8"}}>Worst Loss</div>
-            </div>
+            {[
+              {val:stats.bestStreak,label:"Best Streak"},
+              {val:stats.bestScore,label:"Best Score"},
+              {val:stats.worstLoss>0?"-"+stats.worstLoss:"—",label:"Worst Loss"},
+            ].map(s=><div key={s.label} className="stat-box" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)"}}><div className="stat-val" style={{color:"#e2e8f0"}}>{s.val}</div><div className="stat-label">{s.label}</div></div>)}
           </div>
         </div>
       </div>}
@@ -1737,34 +1723,6 @@ function App(){
         </div>
       </div>}
 
-      {/* ═══════════ POWERS TAB ═══════════ */}
-      {/* Power Registry tab content — hidden but preserved for future ability system */}
-      {tab==="powers"&&<div className="space">
-        <div className="ui-card">
-          <div className="ui-card-title">Power Registry</div>
-          <div className="text-sm text-slate mb-4">Shows which heroes have powers and whether the power came from a template match or name-based fallback.</div>
-          <div className="grid-3">
-            {ownedCards.map(card=>{
-              const powerName=getHeroPowerName(card);
-              const chance=BUFF_CHANCE[card.rarity]||0;
-              return(
-                <div key={card.id} className="collection-card">
-                  {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
-                    <img src={buildImageUrl(card.img,"thumb")} alt={card.name} style={{width:"100%",height:100,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
-                  </div>}
-                  <div className={`name-${card.rarity}`} style={{fontSize:22,fontWeight:700}}>{card.name}</div>
-                  <div className="flex-wrap mt-2 gap-2">
-                    <span className={`badge badge-${card.rarity}`}>{titleCase(card.rarity)}</span>
-                    <span className="badge badge-outline">STR: {getCardStrength(card)}</span>
-                  </div>
-                  {powerName?(<div className="power-box mt-3"><div style={{fontWeight:600}}>{powerName}</div><div className="text-xs mt-2">{chance>0?`${Math.round(chance*100)}% chance for +1 STR`:"No buff effect"}</div></div>)
-                  :(<div className="no-power-box mt-3 text-sm">No power assigned.</div>)}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>}
     </div>
   );
 }
