@@ -342,16 +342,16 @@ const WAX_CONFIG = {
   collection: "officialhero",
   schema: "series1",
   atomicApiBase: "https://aa.wax.blacklusion.io",
-  ipfsGateway: "https://ipfs.io/ipfs/",
+  ipfsGateway: "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/",
   rpcEndpoint: "https://wax.greymass.com",
 };
 const MINT_API = "https://heroes-war-mint.joelcomm.workers.dev";
 const MINT_SECRET = "heroes2026mint";
 const CARD_BACK = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/QmZ91Zj5PZUnL2F8X9Hg2QXPP3UMbqaDqrRCyMrq6zchRN";
-const ARENA_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeicmnni4ovgaj7qpzuvtjnbo6bxisugcrdzczakqsvyky4pm3d2gf4";
-const VICTORY_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeiaxuodno7rhjtra4flau6bmxdw6qbo7t5xeuqrtv3fe43iw7zjru4";
-const ENDGAME_VICTORY = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeidcx2wqx3f4uqq7m6otbatdjoaa34qkylscroendkblbo27nnmwxa";
-const ENDGAME_DEFEAT = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeiaso3uq4jfwmqqvtee376il6kvpty5inpufg4skpmt3kdevqfylue";
+const ARENA_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeicmnni4ovgaj7qpzuvtjnbo6bxisugcrdzczakqsvyky4pm3d2gf4?img-width=1200&img-quality=75&img-format=auto";
+const VICTORY_BG = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeiaxuodno7rhjtra4flau6bmxdw6qbo7t5xeuqrtv3fe43iw7zjru4?img-width=1200&img-quality=75&img-format=auto";
+const ENDGAME_VICTORY = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeidcx2wqx3f4uqq7m6otbatdjoaa34qkylscroendkblbo27nnmwxa?img-width=1200&img-quality=75&img-format=auto";
+const ENDGAME_DEFEAT = "https://copper-adequate-unicorn-990.mypinata.cloud/ipfs/bafybeiaso3uq4jfwmqqvtee376il6kvpty5inpufg4skpmt3kdevqfylue?img-width=1200&img-quality=75&img-format=auto";
 
 /* ═══════════ BLOCKCHAIN VILLAINS ═══════════ */
 const VILLAIN_IMG_BASE = "QmQYXMWU7GSaQu1RoNwWEdFyoFiMF2t7GWD1jxCA2xi5rL";
@@ -364,11 +364,10 @@ const VILLAINS = {
 };
 function villainImgUrl(v,side="front"){
   if(side==="front"){
-    // Classic art (no text) — Encryptkeeper has standalone IPFS hash, others use shared directory
     const path = v.classicImg.startsWith("Qm") && !v.classicImg.includes("/") ? v.classicImg : VILLAIN_IMG_BASE+"/"+v.classicImg;
-    return WAX_CONFIG.ipfsGateway+path;
+    return optimizedUrl(WAX_CONFIG.ipfsGateway+path, "villain");
   }
-  return WAX_CONFIG.ipfsGateway+VILLAIN_IMG_BASE+"/main/back/"+v.cardNum+"b.jpg";
+  return optimizedUrl(WAX_CONFIG.ipfsGateway+VILLAIN_IMG_BASE+"/main/back/"+v.cardNum+"b.jpg", "villain");
 }
 
 const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
@@ -449,11 +448,16 @@ function normalizeAtomicAsset(asset) {
   };
 }
 
-function buildImageUrl(img) {
+const IMG_OPT = { battle: "?img-width=400&img-quality=80&img-format=auto", thumb: "?img-width=200&img-quality=75&img-format=auto", villain: "?img-width=300&img-quality=80&img-format=auto", bg: "?img-width=1200&img-quality=75&img-format=auto" };
+function optimizedUrl(url, size) { return size && IMG_OPT[size] ? url + IMG_OPT[size] : url; }
+
+function buildImageUrl(img, size) {
   if (!img) return CARD_BACK;
-  if (img.startsWith("http://") || img.startsWith("https://")) return img;
-  if (img.startsWith("ipfs://")) return WAX_CONFIG.ipfsGateway + img.replace("ipfs://", "");
-  return WAX_CONFIG.ipfsGateway + img;
+  let url;
+  if (img.startsWith("http://") || img.startsWith("https://")) url = img;
+  else if (img.startsWith("ipfs://")) url = WAX_CONFIG.ipfsGateway + img.replace("ipfs://", "");
+  else url = WAX_CONFIG.ipfsGateway + img;
+  return optimizedUrl(url, size);
 }
 
 // Preload card images into browser cache — legendaries/epics first (largest files)
@@ -462,7 +466,7 @@ function preloadCardImages(cards){
   const sorted=[...cards].sort((a,b)=>(RARITY_ORDER[b.rarity]||0)-(RARITY_ORDER[a.rarity]||0));
   sorted.forEach(c=>{
     if(!c.img)return;
-    const url=buildImageUrl(c.img);
+    const url=buildImageUrl(c.img,"thumb");
     if(_preloadedUrls.has(url))return;
     _preloadedUrls.add(url);
     const i=new Image(); i.src=url;
@@ -652,7 +656,7 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
   const displayStr=baseStr+totalBuff;
   const powerName=card?getHeroPowerName(card):null;
   const [imgLoaded,setImgLoaded]=useState(false);
-  const imgUrl=card?buildImageUrl(card.img):null;
+  const imgUrl=card?buildImageUrl(card.img,"battle"):null;
   // Reset loaded state when card changes
   useEffect(()=>{ setImgLoaded(false); },[imgUrl]);
   // Flip immediately when game says reveal — don't wait for image load
@@ -679,14 +683,14 @@ function FlipCard({card,facedown,label,warFD=[],buffed=false,manualBuff=false,co
         <div className={flipClasses}>
           <div className="flip-face"><img className="card-back" src={CARD_BACK} alt="back"/></div>
           <div className={`flip-face flip-back${peeking?" fx-peek":""}`} style={{padding:8}}>
-            {card?(<div style={{display:"flex",gap:24,width:"100%",height:"100%",alignItems:"center",padding:"0 8px"}}>
-              {/* Left: full card image, fitted to show entire card */}
-              <div style={{flex:"0 0 48%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)",position:"relative"}}>
+            {card?(<div style={{display:"flex",gap:12,width:"100%",height:"100%",alignItems:"center",padding:"0 4px"}}>
+              {/* Left: card image — fixed 45% width, full height, contained */}
+              <div style={{flex:"0 0 45%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.3)",position:"relative"}}>
                 {!imgLoaded&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={CARD_BACK} alt="loading" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:0.5}}/></div>}
                 <img src={imgUrl} alt={card.name} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",borderRadius:10,opacity:imgLoaded?1:0,transition:"opacity 0.2s"}} onLoad={()=>setImgLoaded(true)} onError={(e)=>{e.target.src=CARD_BACK;setImgLoaded(true);}} />
               </div>
               {/* Right: name, rarity, strength, power */}
-              <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:6,minWidth:0,overflow:"hidden"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",gap:6,minWidth:0,overflow:"hidden",height:"100%",paddingTop:8,paddingBottom:8}}>
                 <div className={`name-${r}`} style={{fontSize:24,fontWeight:800,lineHeight:1.2}}>{card.name}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                   <span className={`badge badge-${r}`}>{titleCase(r)}</span>
@@ -1223,7 +1227,7 @@ function App(){
     // Show loading screen while images load
     setMatchLoading(true); setLoadProgress(0);
     const allCards=[...deck,...oDeck];
-    const urls=[...new Set(allCards.map(c=>c.img?buildImageUrl(c.img):null).filter(Boolean))];
+    const urls=[...new Set(allCards.map(c=>c.img?buildImageUrl(c.img,"battle"):null).filter(Boolean))];
     let loaded=0;
     const total=urls.length;
     const checkDone=()=>{
@@ -1299,8 +1303,8 @@ function App(){
       setGame(nextG);
       // Look-ahead: preload the next 6 upcoming cards from each deck
       const ahead=6;
-      nextG.pp.slice(1,ahead+1).forEach(c=>{ if(c?.img){ const i=new Image(); i.src=buildImageUrl(c.img); } });
-      nextG.op.slice(1,ahead+1).forEach(c=>{ if(c?.img){ const i=new Image(); i.src=buildImageUrl(c.img); } });
+      nextG.pp.slice(1,ahead+1).forEach(c=>{ if(c?.img){ const i=new Image(); i.src=buildImageUrl(c.img,"battle"); } });
+      nextG.op.slice(1,ahead+1).forEach(c=>{ if(c?.img){ const i=new Image(); i.src=buildImageUrl(c.img,"battle"); } });
     }
   };
   const triggerPower=()=>{ setGame(g=>{ if(!g||g.winner||g.reveal||g.pManualBuff||g.pCharges<=0)return g; playSfx("ability-trigger",0.5); return{...g,pManualBuff:true,pCharges:g.pCharges-1}; }); };
@@ -1694,7 +1698,7 @@ function App(){
               <div key={heroKey} className={`collection-card ${selectedVariant?"in-deck-"+selectedVariant.rarity:""}`} style={{padding:16}}>
                 <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
                   {heroImg && <div style={{flexShrink:0,width:80,height:100,borderRadius:10,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:4}}>
-                    <img src={buildImageUrl(heroImg)} alt={variants[0].name} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
+                    <img src={buildImageUrl(heroImg,"thumb")} alt={variants[0].name} style={{width:"100%",height:"100%",objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
                   </div>}
                   <div style={{flex:1}}>
                     <div style={{fontSize:22,fontWeight:700,marginBottom:8,color:selectedVariant?undefined:"#94a3b8"}}>
@@ -1746,7 +1750,7 @@ function App(){
               return(
                 <div key={card.id} className="collection-card">
                   {card.img && <div style={{marginBottom:10,borderRadius:12,overflow:"hidden",background:"rgba(0,0,0,0.2)",padding:8}}>
-                    <img src={buildImageUrl(card.img)} alt={card.name} style={{width:"100%",height:100,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
+                    <img src={buildImageUrl(card.img,"thumb")} alt={card.name} style={{width:"100%",height:100,objectFit:"contain",borderRadius:8}} onError={(e)=>{e.target.style.display="none"}} />
                   </div>}
                   <div className={`name-${card.rarity}`} style={{fontSize:22,fontWeight:700}}>{card.name}</div>
                   <div className="flex-wrap mt-2 gap-2">
