@@ -284,6 +284,8 @@
   }
   .villain-card:hover { transform:translateY(-6px); box-shadow:0 12px 32px rgba(0,0,0,0.5); }
   .villain-card.selected { box-shadow:0 0 24px rgba(255,255,255,0.15); }
+  .villain-card.locked { cursor:not-allowed; }
+  .villain-card.locked:hover { transform:none; box-shadow:none; }
   .villain-card img { width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:10px; margin-bottom:6px; }
   .villain-card .v-name { font-size:15px; font-weight:800; line-height:1.2; }
   .villain-card .v-subtitle { font-size:11px; color:#94a3b8; margin-top:1px; }
@@ -378,6 +380,7 @@ const RARITY_ORDER = { common:1, uncommon:2, rare:3, epic:4, legendary:5 };
 const RARITY_CAPS = { legendary:4, epic:8, rare:10, uncommon:12, common:16 };
 const DECK_SIZE = 50;
 const MAX_ROUNDS = 50;
+const VILLAIN_ORDER = ["the_swarm","whisper","lady_iris","encryptkeeper","rez_phede"];
 const LOADING_TIMEOUT_MS = 8000;
 const CONFETTI_COUNT = 50;
 const CROSSFADE_MS = 800;
@@ -882,11 +885,32 @@ function App(){
     try{ const raw=localStorage.getItem(k); return raw?JSON.parse(raw):null; }catch(e){ return null; }
   }
   function saveStats(s){
-    const k=getStatsKey(); if(!k||!s) return;
+    const k=getStatsKey(); if(!k||!s||demoMode) return;
     try{ localStorage.setItem(k,JSON.stringify(s)); }catch(e){}
   }
-  const defaultStats={ wins:0, losses:0, ties:0, winStreak:0, bestStreak:0, bestScore:0, worstLoss:0 };
+  const defaultStats={ wins:0, losses:0, ties:0, winStreak:0, bestStreak:0, bestScore:0 };
   const [stats,setStats]=useState(defaultStats);
+
+  // --- Villain Progression (localStorage per account) ---
+  function getProgressKey(){ return walletAccount ? "bh_war_progress_"+walletAccount : null; }
+  function loadVillainProgress(){
+    const k=getProgressKey(); if(!k) return null;
+    try{ const raw=localStorage.getItem(k); return raw?JSON.parse(raw):null; }catch(e){ return null; }
+  }
+  function saveProgress(p){
+    const k=getProgressKey(); if(!k||!p) return;
+    try{ localStorage.setItem(k,JSON.stringify(p)); }catch(e){}
+  }
+  const [progress,setProgress]=useState({defeated:[]});
+  const [allUnlocked,setAllUnlocked]=useState(false);
+  function isVillainUnlocked(vid){
+    if(demoMode||allUnlocked) return true;
+    if(!walletAccount) return true;
+    if(vid==="the_swarm") return true;
+    const idx=VILLAIN_ORDER.indexOf(vid);
+    if(idx<=0) return true;
+    return progress.defeated.includes(VILLAIN_ORDER[idx-1]);
+  }
 
   // --- Player Profile (localStorage) ---
   function getProfileKey(){ return walletAccount ? "bh_war_profile_"+walletAccount : demoMode ? "bh_war_profile_demo" : null; }
@@ -932,6 +956,8 @@ function App(){
       setDeck([]);
       setGame(null);
       stopGameplayMusic();
+      try{ localStorage.removeItem("bh_war_stats_demo"); }catch(e){}
+      try{ localStorage.removeItem("bh_war_profile_demo"); }catch(e){}
     }
   };
 
@@ -1151,6 +1177,8 @@ function App(){
     setUsername(prof?.username||"");
     setAvatar(prof?.avatar||null);
     setEditingProfile(false);
+    const prog=loadVillainProgress();
+    setProgress(prog||{defeated:[]});
   },[walletAccount,demoMode]);
 
   const handleAvatarUpload=(e)=>{
@@ -1197,16 +1225,20 @@ function App(){
       if(tied){ s.ties++; s.winStreak=0; }
       // Best score = highest player points in a game
       if(game.pPts>s.bestScore) s.bestScore=game.pPts;
-      // Worst loss = biggest point deficit when losing
-      if(lost){
-        const deficit=game.oPts-game.pPts;
-        if(deficit>s.worstLoss) s.worstLoss=deficit;
-      }
       saveStats(s);
       return s;
     });
     // First match badge
     mintBadge("first_match");
+    // Track villain progression (wallet players only)
+    if(game.winner==="player"&&walletAccount&&!demoMode&&game.villain){
+      setProgress(prev=>{
+        if(prev.defeated.includes(game.villain)) return prev;
+        const updated={...prev,defeated:[...prev.defeated,game.villain]};
+        saveProgress(updated);
+        return updated;
+      });
+    }
   },[game?.winner]);
 
   const villain=VILLAINS[villainId]||VILLAINS.the_swarm;
@@ -1226,6 +1258,7 @@ function App(){
 
   const startBattle=()=>{
     if(!deck.length)return;
+    if(!isVillainUnlocked(villainId)){setError("You must defeat the previous villain first.");setTimeout(()=>setError(""),3000);return;}
     setShowConfetti(false); setRoundOutcome(null); setEndgameSplash(null);
     const oDeck=buildDeck(ownedCards);
     const g=createGame(deck,oDeck,villain.cfg,villainId);
@@ -1521,15 +1554,19 @@ function App(){
             <div className="villain-grid">
               {Object.values(VILLAINS).map(v=>{
                 const sel=villainId===v.id;
+                const locked=!isVillainUnlocked(v.id);
+                const prevName=locked?VILLAINS[VILLAIN_ORDER[VILLAIN_ORDER.indexOf(v.id)-1]]?.name:"";
                 return(
-                  <div key={v.id} className={`villain-card${sel?" selected":""}`} onClick={()=>saveVillain(v.id)} style={{borderColor:sel?v.color:"rgba(255,255,255,0.1)",background:sel?v.color+"18":"rgba(255,255,255,0.03)"}}>
-                    <img src={villainImgUrl(v)} alt={v.name} onError={(e)=>{e.target.style.display="none"}}/>
-                    <div className="v-name" style={{color:v.color}}>{v.name}</div>
+                  <div key={v.id} className={`villain-card${sel?" selected":""}${locked?" locked":""}`} onClick={()=>{if(locked){setError("Defeat "+prevName+" first to unlock "+v.name+"!");setTimeout(()=>setError(""),3000);return;}saveVillain(v.id);}} style={{borderColor:sel?v.color:locked?"rgba(255,255,255,0.05)":"rgba(255,255,255,0.1)",background:sel?v.color+"18":locked?"rgba(0,0,0,0.3)":"rgba(255,255,255,0.03)",opacity:locked?0.5:1,position:"relative"}}>
+                    <img src={villainImgUrl(v)} alt={v.name} style={locked?{filter:"grayscale(0.8) brightness(0.5)"}:{}} onError={(e)=>{e.target.style.display="none"}}/>
+                    {locked&&<div style={{position:"absolute",top:"40%",left:"50%",transform:"translate(-50%,-50%)",fontSize:36,opacity:0.8,zIndex:2,textShadow:"0 2px 8px rgba(0,0,0,0.8)"}}>&#x1F512;</div>}
+                    <div className="v-name" style={{color:locked?"#64748b":v.color}}>{v.name}</div>
                     <div className="v-subtitle">{v.subtitle}</div>
                     <div className="v-stars">{"★".repeat(v.difficulty)+"☆".repeat(5-v.difficulty)}</div>
-                    <div className="v-label" style={{color:v.color}}>{v.diffLabel}</div>
-                    <div className="v-ability" style={{color:v.color}}>{v.ability}</div>
+                    <div className="v-label" style={{color:locked?"#64748b":v.color}}>{v.diffLabel}</div>
+                    <div className="v-ability" style={{color:locked?"#64748b":v.color}}>{v.ability}</div>
                     <div className="v-desc">{v.abilityDesc}</div>
+                    {locked&&<div style={{fontSize:11,color:"#f87171",marginTop:4,fontWeight:600}}>Defeat {prevName} first</div>}
                   </div>
                 );
               })}
@@ -1593,25 +1630,24 @@ function App(){
             {game.cfg.shields>0&&<span style={{color:"#fda4af"}}>🛡️ Shield ({game.oShields})</span>}
           </div>
         </div>}
-        {/* Stats Panel */}
-        <div className="ui-card" style={{marginTop:16}}>
+        {/* Stats Panel — logged-in only */}
+        {walletAccount&&!demoMode&&<div className="ui-card" style={{marginTop:16}}>
           <div className="ui-card-title">Player Stats</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,textAlign:"center"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,textAlign:"center"}}>
             {[
               {val:stats.wins,label:"Wins",color:"#4ade80",bg:"rgba(74,222,128,0.08)",border:"rgba(74,222,128,0.2)"},
               {val:stats.losses,label:"Losses",color:"#f87171",bg:"rgba(244,63,94,0.08)",border:"rgba(244,63,94,0.2)"},
               {val:stats.ties,label:"Ties",color:"#facc15",bg:"rgba(250,204,21,0.08)",border:"rgba(250,204,21,0.2)"},
-              {val:stats.winStreak,label:"Win Streak",color:"#a5b4fc",bg:"rgba(99,102,241,0.08)",border:"rgba(129,140,248,0.2)"},
             ].map(s=><div key={s.label} className="stat-box" style={{background:s.bg,border:"1px solid "+s.border}}><div className="stat-val" style={{color:s.color}}>{s.val}</div><div className="stat-label">{s.label}</div></div>)}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginTop:12,textAlign:"center"}}>
             {[
+              {val:stats.winStreak,label:"Win Streak"},
               {val:stats.bestStreak,label:"Best Streak"},
               {val:stats.bestScore,label:"Best Score"},
-              {val:stats.worstLoss>0?"-"+stats.worstLoss:"—",label:"Worst Loss"},
             ].map(s=><div key={s.label} className="stat-box" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)"}}><div className="stat-val" style={{color:"#e2e8f0"}}>{s.val}</div><div className="stat-label">{s.label}</div></div>)}
           </div>
-        </div>
+        </div>}
       </div>}
 
       {/* ═══════════ COLLECTION TAB ═══════════ */}
@@ -1723,6 +1759,7 @@ function App(){
         </div>
       </div>}
 
+      <div style={{textAlign:"center",marginTop:40,paddingBottom:20}}><span onClick={()=>setAllUnlocked(true)} style={{fontSize:10,color:"rgba(255,255,255,0.04)",cursor:"default",userSelect:"none",letterSpacing:1}}>&#x2726;</span></div>
     </div>
   );
 }
