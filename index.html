@@ -1759,7 +1759,7 @@ function App(){
         </div>
       </div>}
 
-      <div style={{textAlign:"center",marginTop:40,paddingBottom:20}}><span onClick={()=>setAllUnlocked(true)} style={{fontSize:10,color:"rgba(255,255,255,0.04)",cursor:"default",userSelect:"none",letterSpacing:1}}>&#x2726;</span></div>
+      <div style={{textAlign:"center",marginTop:40,paddingBottom:20}}><span onClick={()=>setAllUnlocked(true)} style={{fontSize:10,color:"rgba(255,255,255,0.04)",cursor:"default",userSelect:"none",letterSpacing:1,position:"relative"}}>&#x2726;<span style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:2,height:2,background:"red"}}></span></span></div>
     </div>
   );
 }
